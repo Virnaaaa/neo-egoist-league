@@ -126,7 +126,7 @@ const draw = {
       <div class="team-head">${crest(t)}<div><h2>${esc(t.name)}</h2>${grade(t.ovr, t.grade)} <span class="dim">team grade</span></div>
         <div class="facts">
           <div class="fact"><b>${t.w}–${t.l}</b><span>Scrims</span></div>
-          <div class="fact"><b>${t.squad}/${t.cap}</b><span>Squad</span></div>
+          <div class="fact"><b>${t.cap ? t.squad + "/" + t.cap : t.squad}</b><span>${t.cap ? "Squad" : "Players"}</span></div>
           <div class="fact"><b>${money(t.squad_value)}</b><span>Squad value</span></div>
           <div class="fact"><b>${money(t.balance)}</b><span>Budget</span></div>
         </div></div>
@@ -194,13 +194,13 @@ const draw = {
       </div>`;
     }
     const r = D.rules;
-    $("#rules").innerHTML = `Every team started with <b>${money(r.start)}</b>. Each official match pays <b>${money(r.win)}</b> to the winner and <b>${money(r.loss)}</b> to the loser, plus bonuses and penalties of up to ±${money(r.bonus_cap)}. A release clause costs ${r.release}× the player's value, and a squad holds up to ${r.squad_cap} players.`;
+    $("#rules").innerHTML = `Every team started with <b>${money(r.start)}</b>. Each official match pays <b>${money(r.win)}</b> to the winner and <b>${money(r.loss)}</b> to the loser, plus bonuses and penalties of up to ±${money(r.bonus_cap)}. A release clause costs ${r.release}× the player's value${r.squad_cap ? `, and a squad holds up to ${r.squad_cap} players` : ". There's no limit on squad size"}.`;
     const rich = [...D.teams].sort((a, b) => b.balance - a.balance);
     const top = Math.max(1, ...rich.map(t => t.balance));
     $("#bars").innerHTML = rich.map((t, i) => `<div class="bar-row" style="${teamVars(t)}">
       <span class="rank">${i + 1}</span><a class="who" href="teams.html#${slug(t.name)}" style="color:inherit">${crest(t)}<b>${esc(t.name)}</b></a>
       <div class="track"><i style="width:${Math.max(3, Math.max(0, t.balance) / top * 100)}%"></i></div>
-      <span class="amt ${t.balance < 0 ? "neg" : ""}">${money(t.balance)}<span class="sm">${t.squad}/${t.cap} players${t.pending ? ` · ${t.pending} deal${t.pending > 1 ? "s" : ""}` : ""}</span></span></div>`).join("");
+      <span class="amt ${t.balance < 0 ? "neg" : ""}">${money(t.balance)}<span class="sm">${t.cap ? t.squad + "/" + t.cap : t.squad} players${t.pending ? ` · ${t.pending} deal${t.pending > 1 ? "s" : ""}` : ""}</span></span></div>`).join("");
     const moves = D.teams.flatMap(t => t.money.map(m => ({ ...m, t }))).sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 14);
     $("#moves").innerHTML = moves.length ? moves.map(m => `<div class="move" style="--c:${m.amount >= 0 ? "var(--green)" : "var(--red)"}">
       <span class="amt ${m.amount >= 0 ? "pos" : "neg"}">${signed(m.amount)}</span><span class="kind">${esc(KIND[m.kind] || m.kind)}</span>
