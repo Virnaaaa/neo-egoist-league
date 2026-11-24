@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Neo Egoist League</title>
+<meta name="description" content="Standings, clubs and results of Ani's Neo Egoist League.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<meta name="league-data" content="https://raw.githubusercontent.com/Virnaaa/neo-egoist-league/data/data.json">
+</head>
+<body data-page="home">
+<main class="page">
+<div class="hero">
+  <div class="eyebrow">Azure Latch · 6v6 league</div>
+  <h1>Ani's Neo <span>Egoist</span> League</h1>
+  <p class="lede">Five clubs, first to 3 sets, every player rated by the league bot. Standings, rosters, ratings and the transfer market, updated by the bot every few minutes.</p>
+  <div class="meta"><span id="window"></span></div>
+</div>
+<section><h2>The clubs</h2><p class="sub">Team grade is the average Overall of the club's players.</p><div class="clubs" id="clubs"><p class="loading">Loading the clubs…</p></div></section>
+<div class="split">
+  <section><h2>Standings</h2><p class="sub">Official matches (scrims). 3 points for a win, then set difference, then goal difference.</p><div id="table"><p class="loading">Loading the table…</p></div></section>
+  <section><h2>Top players</h2><p class="sub">Highest Overall (out of 110).</p><div id="top"><p class="loading">Loading players…</p></div></section>
+</div>
+<section><h2>Latest results</h2><p class="sub">Sets won, total goals, and the player of the match.</p><div id="results"><p class="loading">Loading results…</p></div></section>
+</main>
+<script src="site.js"></script>
+</body>
+</html>

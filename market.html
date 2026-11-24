@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Transfer Market · Neo Egoist League</title>
+<meta name="description" content="Club budgets, money movements, player values and the transfer window.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<meta name="league-data" content="https://raw.githubusercontent.com/Virnaaa/neo-egoist-league/data/data.json">
+</head>
+<body data-page="market">
+<main class="page">
+<div class="hero">
+  <div class="eyebrow">Transfer market</div>
+  <h1>Money &amp; <span>transfers</span></h1>
+  <p class="lede" id="rules"></p>
+  <div class="meta"><span id="window"></span><span>The window is open Monday 00:00 to Thursday 23:59, New York time.</span></div>
+</div>
+<section><h2>Club budgets</h2><p class="sub">Richest first, in millions.</p><div class="bars" id="bars"><p class="loading">Loading budgets…</p></div></section>
+<div class="split">
+  <section><h2>Latest money moves</h2><p class="sub">Match pay, bonuses, fines and transfers across the league.</p><div class="moves" id="moves"></div></section>
+  <section><h2>Player values</h2><p class="sub">Set by the 4 Independent Bidders (the middle of their estimates).</p><div id="values"></div></section>
+</div>
+</main>
+<script src="site.js"></script>
+</body>
+</html>

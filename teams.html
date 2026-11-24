@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Clubs · Neo Egoist League</title>
+<meta name="description" content="Every club's roster, grade, budget and squad value.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<meta name="league-data" content="https://raw.githubusercontent.com/Virnaaa/neo-egoist-league/data/data.json">
+</head>
+<body data-page="teams">
+<main class="page">
+<div class="hero">
+  <div class="eyebrow">The five clubs</div>
+  <h1>Clubs &amp; <span>rosters</span></h1>
+  <p class="lede">Each club has one Master (gold), who submits lineups and makes transfers, and one New Gen (green), who can't be transferred.</p>
+  <div class="chips" id="chips"></div>
+</div>
+<div id="teamlist"><p class="loading">Loading the clubs…</p></div>
+</main>
+<script src="site.js"></script>
+</body>
+</html>
