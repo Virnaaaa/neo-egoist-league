@@ -541,3 +541,17 @@ footer.site .in { max-width: 1180px; margin: 0 auto; padding-block: 22px 30px; d
   .pc.rv.in.has-card:hover { transform: translateY(-8px) rotate(-1.2deg) scale(1.03); }
 }
 @media (max-width: 420px) { .roster { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; padding: 18px 12px; } }
+
+
+/* Master and New Gen: bigger cards in their own row above the squad */
+.roster-lead { display: flex; justify-content: center; gap: 26px; padding: 28px 18px 6px; }
+.roster-lead .pc { flex: 0 1 250px; }
+.roster.under { padding-top: 18px; border-top: 1px solid var(--line); margin: 14px 18px 0; padding-inline: 0; }
+.pc-sub { font-size: max(7cqi, 8px); }
+.pc-stats span { font-size: max(5.6cqi, 7px); }
+.pc-pos { font-size: max(7.5cqi, 9px); }
+@media (max-width: 420px) {
+  .roster-lead { gap: 12px; padding: 22px 12px 4px; }
+  .roster-lead .pc { flex: 1 1 0; max-width: 200px; }
+  .roster.under { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 8px; margin-inline: 12px; }
+}

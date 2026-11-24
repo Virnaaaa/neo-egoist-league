@@ -130,7 +130,7 @@ const draw = {
           <div class="fact"><b>${money(t.squad_value)}</b><span>Squad value</span></div>
           <div class="fact"><b>${money(t.balance)}</b><span>Budget</span></div>
         </div></div>
-      ${t.roster.length ? `<div class="roster">${t.roster.map(card).join("")}</div>` : `<div class="empty">No players yet</div>`}
+      ${t.roster.length ? roster(t.roster) : `<div class="empty">No players yet</div>`}
     </article>`).join("");
     if (location.hash) { const el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); }
   },
@@ -234,6 +234,14 @@ const draw = {
     apply();
   },
 };
+
+// the Master and New Gen get their own row of bigger cards on top, everyone else below
+function roster(list) {
+  const lead = ["master", "newgen"].map(r => list.find(p => p.role === r)).filter(Boolean);
+  const rest = list.filter(p => !lead.includes(p));
+  return (lead.length ? `<div class="roster-lead">${lead.map(card).join("")}</div>` : "")
+    + (rest.length ? `<div class="roster${lead.length ? " under" : ""}">${rest.map(card).join("")}</div>` : "");
+}
 
 // a roster player as a small foil trading card (same look as the club album above it):
 // club colours for players, gold frame for the Master, green for the New Gen
