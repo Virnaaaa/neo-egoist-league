@@ -121,7 +121,7 @@ const draw = {
   },
 
   teams(D) {
-    $("#chips").innerHTML = D.teams.map(t => `<a href="#${slug(t.name)}">${crest(t)}${esc(t.name)}</a>`).join("");
+    $("#album").innerHTML = album(D);
     $("#teamlist").innerHTML = D.teams.map(t => `<article class="team" id="${slug(t.name)}" style="${teamVars(t)}">
       <div class="team-head">${crest(t)}<div><h2>${esc(t.name)}</h2>${grade(t.ovr, t.grade)} <span class="dim">team grade</span></div>
         <div class="facts">
@@ -245,6 +245,34 @@ function card(p) {
       <div><dt>Value</dt><dd>${p.value != null ? money(p.value) : "–"}</dd></div></dl></div>`;
 }
 
+// ---- the club album, like /team view in Discord (team_views.render_album): foil trading cards in one row,
+// the best club in the middle and bigger, 2nd on its left, 3rd on its right, and so on outwards
+const ALBUM_TITLE = "THE FIVE CLUBS";   // same fixed text as the bot: change it when a team joins
+function album(D) {
+  const ranked = [...D.teams].sort((a, b) => (a.ovr == null) - (b.ovr == null) || (b.ovr || 0) - (a.ovr || 0) || a.name.localeCompare(b.name));
+  const row = [];
+  ranked.forEach((t, i) => i % 2 ? row.unshift(t) : row.push(t));
+  const card = t => {
+    const i = ranked.indexOf(t), rank = t.ovr != null ? i + 1 : null;
+    const master = t.roster.find(p => p.role === "master"), gen = t.roster.find(p => p.role === "newgen");
+    const code = `<b class="fc-code">${esc(t.short)}</b>`;
+    const art = t.crest ? `<img src="crests/${esc(t.crest)}" alt="" onerror="this.outerHTML='${code.replace(/"/g, "&quot;")}'">` : code;
+    const who = (lab, cls, p) => `<div class="fc-role"><span class="${cls}">${lab}</span><em class="${p ? "" : "open"}">${p ? esc(p.name) : "Open"}</em></div>`;
+    return `<a class="fc${i === 0 ? " lead" : ""}" href="#${slug(t.name)}" style="${teamVars(t)};--ink:${t.colours[2]};--o:${i}" aria-label="${esc(t.name)}: full roster">
+      <div class="fc-card"><div class="fc-in">
+        <div class="fc-art">${art}<span class="fc-rank">#${rank ?? "–"}</span><span class="fc-grade g-${esc(t.grade || "")}">${esc(t.grade || "–")}</span></div>
+        <div class="fc-name"><span>${esc(t.name)}</span></div>
+        <div class="fc-ovr">${t.ovr != null ? "TEAM OVR " + t.ovr : "NO GRADE YET"}</div>
+        <div class="fc-stats"><span><b>${t.w}-${t.l}</b>RECORD</span><span><b>${t.squad}</b>PLAYERS</span><span><b>${t.squad_value ? +(+t.squad_value).toFixed(1) : "–"}</b>VALUE M</span></div>
+        ${who("MASTER", "m", master)}${who("NEW GEN", "g", gen)}
+        <i class="fc-sheen"></i>
+      </div></div></a>`;
+  };
+  return `<div class="album-head"><h2>${ALBUM_TITLE}</h2><p>Ani's Neo Egoist League · Team collection</p></div>
+    <div class="album-row">${row.map(card).join("")}</div>
+    <p class="album-foot">#1 in the middle · click a club for its full roster</p>`;
+}
+
 // ---- team roster as hanging banners (like /team view): Master and New Gen tall on the left, everyone
 // else in a grid whose banners get smaller as the squad grows
 const BANNER = { "S+": "#e6b325", S: "#e6b325", A: "#7aa2ff", B: "#7aa2ff", C: "#6ee78c", D: "#fad63c", E: "#fa963c", F: "#c882ff", G: "#aaaab9" };
@@ -342,7 +370,7 @@ function results(D, n) {
 
 // ---- motion: scroll reveal with a stagger, and numbers that count up. Off when the visitor asks for reduced motion.
 const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
-const REVEAL = "section > h2, section > .sub, .club, .card, .res, .bar-row, .move, .fcard, .wanted, .team, .box, .tbl tbody tr, .wk-event, .chips a";
+const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .card, .res, .bar-row, .move, .fcard, .wanted, .team, .box, .tbl tbody tr, .wk-event, .chips a";
 const COUNT = ".club .stats b, .fact b, .bar-row .amt, .wanted .amt, .card .ovr, .rost-grade b, td.num b";
 const seen = new WeakSet();
 const io = MOTION ? new IntersectionObserver(es => es.forEach(e => {
