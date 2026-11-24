@@ -268,6 +268,12 @@ footer.site .in { max-width: 1180px; margin: 0 auto; padding-block: 22px 30px; d
   .bgrid { grid-template-columns: repeat(min(var(--cols), 4), minmax(0, 1fr)); }
 }
 @media (max-width: 560px) { .bgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rost { padding: 14px; } }
+@media (max-width: 600px) {     /* phones: the menu stays on one line under the name, so the sticky bar is short */
+  .top .in { gap: 6px; padding-block: 8px 6px; }
+  .links { width: 100%; margin-left: 0; flex-wrap: nowrap; justify-content: space-between; gap: 0; overflow-x: auto; scrollbar-width: none; }
+  .links::-webkit-scrollbar { display: none; }
+  .links a { padding: 6px 8px; font-size: 12px; letter-spacing: .06em; white-space: nowrap; }
+}
 
 /* teams page cards that open the pop-up */
 .card.has-card { cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
@@ -455,11 +461,14 @@ footer.site .in { max-width: 1180px; margin: 0 auto; padding-block: 22px 30px; d
   background: linear-gradient(115deg, transparent 22%, rgba(255,255,255,.1) 30%, rgba(255,255,255,.1) 40%, transparent 48%,
                               transparent 56%, rgba(201,182,255,.09) 59%, transparent 63%); filter: blur(2px); }
 
-@media (max-width: 760px) {     /* phones: swipe through the cards, best club first */
-  .album-row { justify-content: flex-start; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; padding: 26px 16px 22px; margin: 0 -16px;
-    scrollbar-width: none; }
-  .album-row::-webkit-scrollbar { display: none; }
-  .fc, .fc.lead { flex: 0 0 min(62vw, 250px); order: var(--o); scroll-snap-align: center; }
+.album-foot .ph { display: none; }
+@media (max-width: 760px) {     /* phones: every card at once, two per row, best club alone on top */
+  .album { padding-top: 26px; }
+  .album-head p { letter-spacing: .16em; padding: 0 8px; }
+  .album-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; padding: 22px 0 14px; }
+  .fc { order: var(--o); }
+  .fc.lead { grid-column: 1 / -1; justify-self: center; width: min(58%, 250px); }
+  .album-foot .ph { display: inline; } .album-foot .dt { display: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {

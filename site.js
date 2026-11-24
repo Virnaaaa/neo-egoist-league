@@ -270,7 +270,7 @@ function album(D) {
   };
   return `<div class="album-head"><h2>${ALBUM_TITLE}</h2><p>Ani's Neo Egoist League · Team collection</p></div>
     <div class="album-row">${row.map(card).join("")}</div>
-    <p class="album-foot">#1 in the middle · click a club for its full roster</p>`;
+    <p class="album-foot"><span class="dt">#1 in the middle · click a club for its full roster</span><span class="ph">#1 on top · tap a club for its full roster</span></p>`;
 }
 
 // ---- team roster as hanging banners (like /team view): Master and New Gen tall on the left, everyone
@@ -370,7 +370,7 @@ function results(D, n) {
 
 // ---- motion: scroll reveal with a stagger, and numbers that count up. Off when the visitor asks for reduced motion.
 const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
-const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .card, .res, .bar-row, .move, .fcard, .wanted, .team, .box, .tbl tbody tr, .wk-event, .chips a";
+const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .card, .res, .bar-row, .move, .fcard, .wanted, .box, .tbl tbody tr, .wk-event, .chips a";
 const COUNT = ".club .stats b, .fact b, .bar-row .amt, .wanted .amt, .card .ovr, .rost-grade b, td.num b";
 const seen = new WeakSet();
 const io = MOTION ? new IntersectionObserver(es => es.forEach(e => {
@@ -379,7 +379,7 @@ const io = MOTION ? new IntersectionObserver(es => es.forEach(e => {
   e.target.classList.add("in");
   e.target.querySelectorAll?.(COUNT).forEach(countUp);
   if (e.target.matches(COUNT)) countUp(e.target);
-}), { rootMargin: "0px 0px -8% 0px", threshold: .08 }) : null;
+}), { rootMargin: "0px 0px -4% 0px", threshold: 0 }) : null;
 function countUp(el) {
   if (seen.has(el)) return; seen.add(el);
   const node = [...el.childNodes].find(n => n.nodeType === 3 && /\d/.test(n.nodeValue));
