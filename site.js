@@ -189,7 +189,7 @@ const draw = {
         </div>
         ${W.bounties.length ? `<div class="wk-bounty"><span class="eyebrow">Wanted</span>${W.bounties.map(b => `<div class="wanted">${avatar({ name: b.player, avatar: b.avatar })}
           <div><b>${esc(b.player)}</b><small>${esc(b.team)} · ${b.sponsor ? "Sponsor bounty" : b.by ? "Paid by " + esc(b.by) : "League bounty"}${b.reason ? " · " + esc(b.reason) : ""}</small>
-          <small>Beat ${esc(b.team)} with ${esc(b.player)} held scoreless${b.claimed ? " · <b class=\"pos\">claimed</b>" : ""}</small></div>
+          <small>Beat ${esc(b.team)} with ${esc(b.player)} held scoreless${b.until ? " · until " + esc(b.until) : ""}${b.claimed ? " · <b class=\"pos\">claimed</b>" : ""}</small></div>
           <span class="amt">+${money(b.amount)}</span></div>`).join("")}</div>` : ""}
       </div>`;
     }
