@@ -248,13 +248,14 @@ function card(p) {
 // ---- team roster as hanging banners (like /team view): Master and New Gen tall on the left, everyone
 // else in a grid whose banners get smaller as the squad grows
 const BANNER = { "S+": "#e6b325", S: "#e6b325", A: "#7aa2ff", B: "#7aa2ff", C: "#6ee78c", D: "#fad63c", E: "#fa963c", F: "#c882ff", G: "#aaaab9" };
-function banner(p, big) {
+function banner(p, big, delay = 0) {
+  const d = `;--d:${delay.toFixed(2)}s`;
   const col = p.role === "master" ? "#e6b325" : p.role === "newgen" ? "#22c55e" : (BANNER[p.grade] || "#7a7f99");
-  if (!p.name) return `<div class="ban ${big ? "big" : ""} open" style="--bc:${col}"><b class="b-open">OPEN</b><span class="b-lab">${p.role === "master" ? "Master" : "New Gen"} spot</span></div>`;
+  if (!p.name) return `<div class="ban ${big ? "big" : ""} open" style="--bc:${col}${d}"><b class="b-open">OPEN</b><span class="b-lab">${p.role === "master" ? "Master" : "New Gen"} spot</span></div>`;
   const val = p.value != null ? money(p.value) : "–";
   const tag = big ? (p.role === "master" ? `<span class="b-tag box">Master</span>` : `<span class="b-tag">New Gen</span>`) : "";
   const attrs = p.card ? `data-key="${esc(p.id)}" data-v="${esc(p.card)}" role="button" tabindex="0" aria-label="${esc(p.name)}: player card"` : "";
-  return `<div class="ban ${big ? "big" : ""} ${p.card ? "has-card" : ""}" style="--bc:${col}" ${attrs}>
+  return `<div class="ban ${big ? "big" : ""} ${p.card ? "has-card" : ""}" style="--bc:${col}${d}" ${attrs}>
     <span class="b-pos">${esc(p.pos || "–")}</span>
     <span class="b-ovr">${p.ovr ?? "–"}<small>/110</small></span>
     <span class="b-pic">${p.avatar ? `<img src="${esc(p.avatar)}" alt="" onerror="this.remove()">` : ""}<i>${initials(p.name)}</i></span>
@@ -270,8 +271,8 @@ function rosterBanners(t) {
     <div class="rost-head">${crest(t)}<div><h3>${esc(t.name)}</h3><span class="dim">Roster · ${t.squad} player${t.squad === 1 ? "" : "s"} · ${t.w}–${t.l}</span></div>
       <div class="rost-grade"><span>Team grade</span>${t.ovr != null ? `<b class="g-${esc(t.grade)}">${esc(t.grade)} ${t.ovr}</b>` : "<b>–</b>"}</div></div>
     <div class="rost-body">
-      <div class="leaders">${lead.map(p => banner(p, true)).join("")}</div>
-      ${rest.length ? `<div class="bgrid" style="--cols:${cols}">${rest.map(p => banner(p, false)).join("")}</div>` : `<div class="empty bgrid-empty">No other players yet</div>`}
+      <div class="leaders">${lead.map((p, i) => banner(p, true, i * .09)).join("")}</div>
+      ${rest.length ? `<div class="bgrid" style="--cols:${cols}">${rest.map((p, i) => banner(p, false, .18 + Math.min(i, 16) * .05)).join("")}</div>` : `<div class="empty bgrid-empty">No other players yet</div>`}
     </div>
     <p class="dim rost-foot">Click a player to see their card and skill sheet.</p></div>`;
 }
@@ -293,7 +294,8 @@ function showCard(el) {
       const b = e.target.closest(".pop-tabs button"); if (b) setLayout(b.dataset.l);
     });
     $("img", m).addEventListener("error", () => { $("img", m).hidden = true; $(".pop-msg", m).hidden = false; });
-    $("img", m).addEventListener("load", () => { $("img", m).hidden = false; $(".pop-msg", m).hidden = true; });
+    $("img", m).addEventListener("load", () => { $("img", m).hidden = false; $(".pop-msg", m).hidden = true; $("img", m).classList.remove("swap"); });
+    $("img", m).addEventListener("error", () => $("img", m).classList.remove("swap"));
   }
   m.dataset.key = key; m.dataset.v = v;
   $("#pop-title").textContent = name;
@@ -306,9 +308,17 @@ function setLayout(l) {
   m.querySelectorAll(".pop-tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === l));
   const img = $("img", m);
   img.alt = $("#pop-title").textContent + (l === "card" ? " player card" : " skill sheet");
-  img.src = `${CARD_BASE}cards/${m.dataset.key}-${l}.webp?v=${encodeURIComponent(m.dataset.v)}`;
+  const src = `${CARD_BASE}cards/${m.dataset.key}-${l}.webp?v=${encodeURIComponent(m.dataset.v)}`;
+  if (!MOTION || !img.getAttribute("src")) { img.src = src; return; }
+  img.classList.add("swap");
+  setTimeout(() => { img.onload = () => { img.classList.remove("swap"); img.onload = null; }; img.src = src; }, 160);
 }
-function hideCard() { const m = $("#cardpop"); if (m) { m.hidden = true; $("img", m).removeAttribute("src"); } document.body.style.overflow = ""; }
+function hideCard() {
+  const m = $("#cardpop"); if (!m || m.hidden) return;
+  const done = () => { m.classList.remove("closing"); m.hidden = true; $("img", m).removeAttribute("src"); document.body.style.overflow = ""; };
+  if (!MOTION) return done();
+  m.classList.add("closing"); setTimeout(done, 170);
+}
 document.addEventListener("click", e => { const el = e.target.closest(".has-card"); if (el) showCard(el); });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") hideCard();
@@ -330,7 +340,50 @@ function results(D, n) {
   }).join("")}</div>`;
 }
 
+// ---- motion: scroll reveal with a stagger, and numbers that count up. Off when the visitor asks for reduced motion.
+const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
+const REVEAL = "section > h2, section > .sub, .club, .card, .res, .bar-row, .move, .fcard, .wanted, .team, .box, .tbl tbody tr, .wk-event, .chips a";
+const COUNT = ".club .stats b, .fact b, .bar-row .amt, .wanted .amt, .card .ovr, .rost-grade b, td.num b";
+const seen = new WeakSet();
+const io = MOTION ? new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  io.unobserve(e.target);
+  e.target.classList.add("in");
+  e.target.querySelectorAll?.(COUNT).forEach(countUp);
+  if (e.target.matches(COUNT)) countUp(e.target);
+}), { rootMargin: "0px 0px -8% 0px", threshold: .08 }) : null;
+function countUp(el) {
+  if (seen.has(el)) return; seen.add(el);
+  const node = [...el.childNodes].find(n => n.nodeType === 3 && /\d/.test(n.nodeValue));
+  if (!node) return;
+  const m = node.nodeValue.match(/^(\D*?)(-?\d+(?:\.\d+)?)(\D*)$/);   // one number only ("3–1" records are left alone)
+  if (!m) return;
+  const end = parseFloat(m[2]), dec = (m[2].split(".")[1] || "").length, t0 = performance.now(), dur = 900;
+  if (!end) return;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / dur), v = end * (1 - Math.pow(1 - k, 3));
+    node.nodeValue = m[1] + v.toFixed(dec) + m[3];
+    if (k < 1) requestAnimationFrame(step); else node.nodeValue = m[1] + m[2] + m[3];
+  };
+  requestAnimationFrame(step);
+}
+function reveal(root = document) {
+  if (!MOTION) return;
+  const els = [...root.querySelectorAll(REVEAL)].filter(el => !el.classList.contains("rv"));
+  const idx = new Map();
+  els.forEach(el => {
+    const i = idx.get(el.parentNode) || 0; idx.set(el.parentNode, i + 1);
+    el.style.setProperty("--d", Math.min(i, 12) * .05 + "s");
+    el.classList.add("rv"); io.observe(el);
+  });
+  root.querySelectorAll?.(".track i").forEach((el, i) => el.style.setProperty("--d", .1 + Math.min(i, 12) * .06 + "s"));
+  root.querySelectorAll?.(".rost " + COUNT.split(", ").join(", .rost ")).forEach(countUp);
+}
+if (MOTION) new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) reveal(); })
+  .observe(document.body, { childList: true, subtree: true });
+
 (async () => {
+  reveal();
   if (page === "guide") { draw.guide(); }
   try {
     const D = await load();
