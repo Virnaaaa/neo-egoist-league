@@ -235,14 +235,23 @@ const draw = {
   },
 };
 
+// a roster player as a small foil trading card (same look as the club album above it):
+// club colours for players, gold frame for the Master, green for the New Gen
 function card(p) {
-  const pos = p.pos ? `${esc(p.pos)} · ${esc(POS[p.pos] || "")}` : "No matches yet";
-  return `<div class="card ${p.role}${p.card ? " has-card" : ""}" ${p.card ? `data-key="${esc(p.id)}" data-v="${esc(p.card)}" tabindex="0" role="button" aria-label="${esc(p.name)}: player card"` : ""}>
-    <div class="head">${avatar(p)}<div class="nm"><b>${esc(p.name)}</b><small>${pos}</small></div>
-      <div class="ovr ${p.grade ? "g-" + esc(p.grade) : "dim"}">${p.ovr ?? "–"}<small>${p.grade ? esc(p.grade) + " · OVR" : "OVR"}</small></div></div>
-    <div>${role(p.role)}</div>
-    <dl><div><dt>Avg</dt><dd>${p.apps ? (+p.avg).toFixed(2) : "–"}</dd></div><div><dt>Matches</dt><dd>${p.apps}</dd></div>
-      <div><dt>Value</dt><dd>${p.value != null ? money(p.value) : "–"}</dd></div></dl></div>`;
+  const tag = p.role === "master" ? `<span class="pc-tag m">MASTER</span>` : p.role === "newgen" ? `<span class="pc-tag g">NEW GEN</span>` : "";
+  const attrs = p.card ? `data-key="${esc(p.id)}" data-v="${esc(p.card)}" tabindex="0" role="button" aria-label="${esc(p.name)}: player card"` : "";
+  return `<div class="pc ${p.role || ""}${p.card ? " has-card" : ""}${p.apps ? "" : " new"}" ${attrs}>
+    <div class="pc-card"><div class="pc-in">
+      <div class="pc-art">
+        <span class="pc-ovr ${p.grade ? "g-" + esc(p.grade) : "none"}"><b>${p.ovr ?? "–"}</b><small>${p.grade ? esc(p.grade) : "OVR"}</small></span>
+        ${p.pos ? `<span class="pc-pos">${esc(p.pos)}</span>` : ""}
+        ${avatar(p)}${tag}
+      </div>
+      <div class="pc-name"><span>${esc(p.name)}</span></div>
+      <div class="pc-sub">${p.pos ? esc(POS[p.pos] || p.pos) : "No matches yet"}</div>
+      <div class="pc-stats"><span><b>${p.apps ? (+p.avg).toFixed(2) : "–"}</b>AVG</span><span><b>${p.apps}</b>MATCHES</span><span><b>${p.value != null ? money(p.value) : "–"}</b>VALUE</span></div>
+      <i class="pc-sheen"></i>
+    </div></div></div>`;
 }
 
 // ---- the club album, like /team view in Discord (team_views.render_album): foil trading cards in one row,
@@ -370,8 +379,8 @@ function results(D, n) {
 
 // ---- motion: scroll reveal with a stagger, and numbers that count up. Off when the visitor asks for reduced motion.
 const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
-const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .card, .res, .bar-row, .move, .fcard, .wanted, .box, .tbl tbody tr, .wk-event, .chips a";
-const COUNT = ".club .stats b, .fact b, .bar-row .amt, .wanted .amt, .card .ovr, .rost-grade b, td.num b";
+const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .pc, .res, .bar-row, .move, .fcard, .wanted, .box, .tbl tbody tr, .wk-event, .chips a";
+const COUNT = ".club .stats b, .fact b, .bar-row .amt, .wanted .amt, .pc-ovr b, .rost-grade b, td.num b";
 const seen = new WeakSet();
 const io = MOTION ? new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return;

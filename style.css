@@ -140,7 +140,7 @@ tr.lead .rank { color: var(--gold); }
 .fact { text-align: right; }
 .fact b { display: block; font: 700 22px var(--display); font-variant-numeric: tabular-nums; }
 .fact span { font: 600 11px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(225px, 1fr)); gap: 12px; padding: 18px; }
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 14px; padding: 22px 18px; }
 .card { border: 1px solid var(--line); border-radius: 14px; background: var(--panel-2); padding: 14px; display: grid; gap: 10px; position: relative; }
 .card.master { border-color: rgba(230,179,37,.55); box-shadow: inset 0 3px 0 var(--gold); }
 .card.newgen { border-color: rgba(52,211,120,.5); box-shadow: inset 0 3px 0 var(--green); }
@@ -488,3 +488,56 @@ footer.site .in { max-width: 1180px; margin: 0 auto; padding-block: 22px 30px; d
   .album-head h2 { background-size: 200% 100%; animation: sheen 7s linear infinite; }
 }
 @keyframes lead-glow { 50% { box-shadow: 0 0 64px 0 rgba(250,204,21,.7), 0 24px 40px -18px rgba(0,0,0,.85); } }
+
+
+/* ================================================================ Teams: roster players as foil cards */
+.pc { container-type: inline-size; position: relative; min-width: 0; color: #fff; border-radius: 12px;
+  --f1: var(--c1); --f2: var(--c2); }
+.pc.master { --f1: #fde68a; --f2: #b45309; }
+.pc.newgen { --f1: #86efac; --f2: #15803d; }
+.pc-card { aspect-ratio: 5 / 7.4; border-radius: 8cqi; padding: 3.6cqi;
+  background: linear-gradient(135deg, var(--f1), var(--f2) 55%, var(--f1)); box-shadow: 0 18px 30px -16px rgba(0,0,0,.85); }
+.pc.master .pc-card { box-shadow: 0 0 26px -6px rgba(250,204,21,.55), 0 18px 30px -16px rgba(0,0,0,.85); }
+.pc.newgen .pc-card { box-shadow: 0 0 26px -6px rgba(34,197,94,.5), 0 18px 30px -16px rgba(0,0,0,.85); }
+.pc-in { position: relative; height: 100%; border-radius: 5.4cqi; overflow: hidden; background: #0f0f14; display: flex; flex-direction: column; }
+.pc-art { position: relative; height: 56%; flex: none; display: grid; place-items: center;
+  background: repeating-linear-gradient(66deg, transparent 0 6cqi, rgba(255,255,255,.1) 6cqi 7cqi), linear-gradient(135deg, var(--c1), var(--c2)); }
+.pc-art .av { width: 50cqi; height: 50cqi; font: 700 15cqi var(--display); border: 1.6cqi solid #fff; margin-top: 4cqi;
+  box-shadow: 0 2.4cqi 5cqi rgba(0,0,0,.55); background: #20232f; }
+.pc-ovr { position: absolute; left: 6cqi; top: 4.5cqi; text-align: center; line-height: 1; text-shadow: 0 .6cqi 2cqi rgba(0,0,0,.5); }
+.pc-ovr b { display: block; font: 400 19cqi/1 Anton, Impact, sans-serif; color: #fff; }
+.pc-ovr small { display: block; margin-top: 1cqi; font: 400 9cqi/1 Anton, Impact, sans-serif; }
+.pc-ovr.none small { color: #d4d4d8; font-size: 6cqi; letter-spacing: .1em; }
+.pc-pos { position: absolute; right: 6cqi; top: 6cqi; padding: 1.2cqi 3cqi; border-radius: 2cqi; background: rgba(0,0,0,.55);
+  font: 700 7.5cqi "Barlow Condensed", var(--display); letter-spacing: .06em; }
+.pc-tag { position: absolute; bottom: 0; left: 50%; transform: translate(-50%, 50%); padding: 1.2cqi 4cqi; border-radius: 99px;
+  font: 700 6.5cqi "Barlow Condensed", var(--display); letter-spacing: .14em; color: #000; white-space: nowrap; z-index: 1; }
+.pc-tag.m { background: #facc15; } .pc-tag.g { background: #22c55e; }
+.pc-name { margin-top: 7cqi; padding: 0 5cqi; text-align: center; font: 400 11cqi/1.1 Anton, Impact, sans-serif; text-transform: uppercase; letter-spacing: .01em; }
+.pc-name span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-sub { text-align: center; font: 500 7cqi "Barlow Condensed", var(--display); letter-spacing: .08em; text-transform: uppercase; color: #a1a1aa; margin-top: 1cqi; }
+.pc-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin: auto 4cqi 5cqi; padding-top: 3.6cqi; border-top: 1px solid rgba(255,255,255,.16); }
+.pc-stats span { text-align: center; font: 600 5.6cqi "Barlow Condensed", var(--display); letter-spacing: .08em; color: #8b8b96; min-width: 0; }
+.pc-stats b { display: block; font: 700 10cqi/1.15 "Barlow Condensed", var(--display); color: #fff; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc.new .pc-art .av { filter: grayscale(.6); opacity: .8; }
+.pc-sheen { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 22%, rgba(255,255,255,.1) 30%, rgba(255,255,255,.1) 40%, transparent 48%,
+                              transparent 56%, rgba(201,182,255,.08) 59%, transparent 63%); }
+.pc.has-card { cursor: pointer; }
+.pc:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .pc { transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+  .pc-card { transition: box-shadow .3s; }
+  .pc.has-card:hover { transform: translateY(-8px) rotate(-1.2deg) scale(1.03); }
+  .pc.has-card:hover .pc-card { box-shadow: 0 0 30px -4px color-mix(in srgb, var(--f1) 70%, transparent), 0 24px 34px -16px rgba(0,0,0,.9); }
+  .pc-sheen { transform: translateX(-70%); transition: transform .9s ease; }
+  .pc:hover .pc-sheen { transform: translateX(70%); }
+  .pc-art .av { transition: transform .45s cubic-bezier(.3,1.5,.5,1); }
+  .pc:hover .pc-art .av { transform: scale(1.08) rotate(-3deg); }
+  .pc.master .pc-card { animation: lead-glow 3s ease-in-out infinite; }
+  .pc.rv { transform: translateY(30px) rotateY(-20deg); }
+  .pc.rv.in { transform: none; }
+  .pc.rv.in.has-card:hover { transform: translateY(-8px) rotate(-1.2deg) scale(1.03); }
+}
+@media (max-width: 420px) { .roster { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; padding: 18px 12px; } }
