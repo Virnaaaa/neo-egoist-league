@@ -287,3 +287,22 @@ footer.site .in { max-width: 1180px; margin: 0 auto; padding-block: 22px 30px; d
 .pop-img img { display: block; width: 100%; height: auto; }
 .pop-msg { color: var(--muted); padding: 40px 20px; text-align: center; }
 .pop-img { flex: 1; min-height: 0; }
+
+/* ---- this week: league event, fortune cards, bounties */
+.pill.ev { color: var(--gold); border-color: rgba(230,179,37,.5); text-decoration: none; }
+.pill.ev::before { display: none; }
+.wk { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.wk > div { align-self: start; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; display: grid; gap: 10px; align-content: start; }
+.wk-event { border-color: rgba(230,179,37,.45) !important; background: linear-gradient(160deg, rgba(230,179,37,.12), transparent 60%), var(--panel) !important; }
+.wk-event h3 { margin: 0; color: var(--fg); text-transform: none; font-size: 22px; letter-spacing: .02em; }
+.wk-event p { margin: 0; color: var(--muted); }
+.fcard { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; border-left: 3px solid var(--rc); padding: 6px 0 6px 10px; }
+.fcard .crest, .fcard .badge { width: 30px; height: 30px; font-size: 9px; border-radius: 7px; }
+.fcard b { display: block; font: 600 14.5px var(--display); }
+.fcard small { color: var(--rc); font: 600 11px var(--display); letter-spacing: .1em; text-transform: uppercase; }
+.fcard .fres { display: block; font: 500 13.5px var(--body); color: var(--fg); margin-top: 2px; }
+.wk-wait { margin: 0; font-size: 13px; }
+.wanted { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.wanted b { font: 600 15px var(--display); }
+.wanted small { display: block; color: var(--muted); font-size: 12.5px; }
+.wanted .amt { font: 700 20px var(--display); color: var(--gold); }

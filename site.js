@@ -11,7 +11,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const money = m => { m = +m || 0; return (Math.abs(m - Math.round(m)) < 0.01 ? m.toFixed(0) : m.toFixed(1)) + "M"; };
 const signed = m => (m >= 0 ? "+" : "−") + money(Math.abs(m));
 const POS = { GK: "Goalkeeper", LM: "Left Mid", RM: "Right Mid", LW: "Left Wing", RW: "Right Wing", CF: "Forward", CM: "Midfielder" };
-const KIND = { start: "Start", match: "Match", transfer_in: "Sale", transfer_out: "Signing", fine: "Fine", penalty: "Penalty", admin: "Admin" };
+const KIND = { start: "Start", match: "Match", transfer_in: "Sale", transfer_out: "Signing", fine: "Fine", penalty: "Penalty", admin: "Admin", fortune: "Card", event: "Event", bounty: "Bounty" };
 
 function nyDate(sqlUtc, withTime) {
   if (!sqlUtc) return "";
@@ -88,6 +88,7 @@ const draw = {
   home(D) {
     const rows = standings(D);
     $("#window").innerHTML = windowPill(D);
+    if (D.week && D.week.event) { const p = $("#evpill"); p.hidden = false; p.textContent = "🌍 " + D.week.event; }
     $("#table").innerHTML = `<div class="tbl"><table>
       <thead><tr><th>#</th><th>Club</th><th class="num">P</th><th class="num">W</th><th class="num">L</th><th class="num">SD</th><th class="num">GD</th><th class="num">Pts</th><th>Grade</th></tr></thead>
       <tbody>${rows.map((t, i) => `<tr class="${i === 0 && t.p ? "lead" : ""}"><td class="rank">${i + 1}</td>
@@ -173,6 +174,25 @@ const draw = {
 
   market(D) {
     $("#window").innerHTML = windowPill(D);
+    const W = D.week;
+    if (W && (W.event || W.cards.length || W.bounties.length)) {
+      $("#week-sec").hidden = false;
+      const RAR = { common: ["Common", "#9aa0b4"], rare: ["Rare", "#5b8cff"], legendary: ["Legendary", "#e6b325"], cursed: ["Cursed", "#ff4d5e"] };
+      const drawn = new Set(W.cards.map(c => c.team));
+      const waiting = D.teams.filter(t => !drawn.has(t.name));
+      $("#week").innerHTML = `<div class="wk">
+        ${W.event ? `<div class="wk-event"><span class="eyebrow">League event</span><h3>🌍 ${esc(W.event)}</h3><p>${esc(W.text || "")}</p></div>` : ""}
+        <div class="wk-cards"><span class="eyebrow">Fortune cards</span>
+          ${W.cards.map(c => { const t = teamOf(D, c.team), r = RAR[c.rarity] || RAR.common;
+            return `<div class="fcard" style="--rc:${r[1]};${teamVars(t)}">${crest(t)}<div><b>${esc(c.card)}</b><small>${esc(c.team)} · ${r[0]}</small><span class="fres">${esc(c.result)}</span></div></div>`; }).join("")}
+          ${waiting.length ? `<p class="dim wk-wait">Not drawn yet: ${waiting.map(t => esc(t.name)).join(", ")}</p>` : ""}
+        </div>
+        ${W.bounties.length ? `<div class="wk-bounty"><span class="eyebrow">Wanted</span>${W.bounties.map(b => `<div class="wanted">${avatar({ name: b.player, avatar: b.avatar })}
+          <div><b>${esc(b.player)}</b><small>${esc(b.team)} · ${b.sponsor ? "Sponsor bounty" : b.by ? "Paid by " + esc(b.by) : "League bounty"}${b.reason ? " · " + esc(b.reason) : ""}</small>
+          <small>Beat ${esc(b.team)} with ${esc(b.player)} held scoreless${b.claimed ? " · <b class=\"pos\">claimed</b>" : ""}</small></div>
+          <span class="amt">+${money(b.amount)}</span></div>`).join("")}</div>` : ""}
+      </div>`;
+    }
     const r = D.rules;
     $("#rules").innerHTML = `Every team started with <b>${money(r.start)}</b>. Each official match pays <b>${money(r.win)}</b> to the winner and <b>${money(r.loss)}</b> to the loser, plus bonuses and penalties of up to ±${money(r.bonus_cap)}. A release clause costs ${r.release}× the player's value, and a squad holds up to ${r.squad_cap} players.`;
     const rich = [...D.teams].sort((a, b) => b.balance - a.balance);
