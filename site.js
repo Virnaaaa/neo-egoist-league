@@ -101,10 +101,22 @@ const draw = {
         <td><div class="who">${avatar(p)}<div style="min-width:0"><b>${esc(p.name)}</b><div class="dim" style="font-size:12px">${esc(p.team || "No team")}</div></div></div></td>
         <td>${esc(p.pos || "–")}</td><td>${grade(p.ovr, p.grade)}</td></tr>`).join("")}</tbody></table></div>`
       : `<div class="empty">No rated players yet</div>`;
-    $("#clubs").innerHTML = D.teams.map(t => `<a class="club" href="teams.html#${slug(t.name)}" style="${teamVars(t)}">
+    $("#clubs").innerHTML = D.teams.map(t => `<a class="club" href="#${slug(t.name)}" data-team="${esc(t.name)}" style="${teamVars(t)}">
       <div class="top-row">${crest(t)}<div><h4>${esc(t.name)}</h4>${grade(t.ovr, t.grade)}</div></div>
       <div class="stats"><span><b>${t.w}–${t.l}</b>Record</span><span><b>${t.squad}</b>Players</span><span><b>${money(t.balance)}</b>Budget</span></div></a>`).join("");
     $("#results").innerHTML = results(D, 6);
+    const open = name => {
+      const t = teamOf(D, name); if (!t) return;
+      document.querySelectorAll(".club").forEach(c => c.classList.toggle("on", c.dataset.team === name));
+      const box = $("#roster"); box.hidden = false; box.innerHTML = rosterBanners(t);
+      box.scrollIntoView({ block: "start" });
+    };
+    $("#clubs").addEventListener("click", e => {
+      const c = e.target.closest(".club"); if (!c) return;
+      e.preventDefault(); history.replaceState(null, "", "#" + slug(c.dataset.team)); open(c.dataset.team);
+    });
+    const start = D.teams.find(t => location.hash && slug(t.name) === location.hash.slice(1));
+    if (start) open(start.name);
   },
 
   teams(D) {
@@ -205,13 +217,84 @@ const draw = {
 
 function card(p) {
   const pos = p.pos ? `${esc(p.pos)} · ${esc(POS[p.pos] || "")}` : "No matches yet";
-  return `<div class="card ${p.role}">
+  return `<div class="card ${p.role}${p.card ? " has-card" : ""}" ${p.card ? `data-key="${esc(p.id)}" data-v="${esc(p.card)}" tabindex="0" role="button" aria-label="${esc(p.name)}: player card"` : ""}>
     <div class="head">${avatar(p)}<div class="nm"><b>${esc(p.name)}</b><small>${pos}</small></div>
       <div class="ovr ${p.grade ? "g-" + esc(p.grade) : "dim"}">${p.ovr ?? "–"}<small>${p.grade ? esc(p.grade) + " · OVR" : "OVR"}</small></div></div>
     <div>${role(p.role)}</div>
     <dl><div><dt>Avg</dt><dd>${p.apps ? (+p.avg).toFixed(2) : "–"}</dd></div><div><dt>Matches</dt><dd>${p.apps}</dd></div>
       <div><dt>Value</dt><dd>${p.value != null ? money(p.value) : "–"}</dd></div></dl></div>`;
 }
+
+// ---- team roster as hanging banners (like /team view): Master and New Gen tall on the left, everyone
+// else in a grid whose banners get smaller as the squad grows
+const BANNER = { "S+": "#e6b325", S: "#e6b325", A: "#7aa2ff", B: "#7aa2ff", C: "#6ee78c", D: "#fad63c", E: "#fa963c", F: "#c882ff", G: "#aaaab9" };
+function banner(p, big) {
+  const col = p.role === "master" ? "#e6b325" : p.role === "newgen" ? "#22c55e" : (BANNER[p.grade] || "#7a7f99");
+  if (!p.name) return `<div class="ban ${big ? "big" : ""} open" style="--bc:${col}"><b class="b-open">OPEN</b><span class="b-lab">${p.role === "master" ? "Master" : "New Gen"} spot</span></div>`;
+  const val = p.value != null ? money(p.value) : "–";
+  const tag = big ? (p.role === "master" ? `<span class="b-tag box">Master</span>` : `<span class="b-tag">New Gen</span>`) : "";
+  const attrs = p.card ? `data-key="${esc(p.id)}" data-v="${esc(p.card)}" role="button" tabindex="0" aria-label="${esc(p.name)}: player card"` : "";
+  return `<div class="ban ${big ? "big" : ""} ${p.card ? "has-card" : ""}" style="--bc:${col}" ${attrs}>
+    <span class="b-pos">${esc(p.pos || "–")}</span>
+    <span class="b-ovr">${p.ovr ?? "–"}<small>/110</small></span>
+    <span class="b-pic">${p.avatar ? `<img src="${esc(p.avatar)}" alt="" onerror="this.remove()">` : ""}<i>${initials(p.name)}</i></span>
+    <span class="b-name">${esc(p.name)}</span>${tag}
+    <span class="b-stats"><span>AVG<b>${p.apps ? (+p.avg).toFixed(2) : "–"}</b></span><span>MATCHES<b>${p.apps}</b></span><span>VALUE<b>${val}</b></span></span>
+    <span class="b-grade">${esc(p.grade || "–")}</span></div>`;
+}
+function rosterBanners(t) {
+  const lead = ["master", "newgen"].map(r => t.roster.find(p => p.role === r) || { role: r });
+  const rest = t.roster.filter(p => p.role !== "master" && p.role !== "newgen");
+  const cols = rest.length <= 8 ? 4 : rest.length <= 10 ? 5 : rest.length <= 12 ? 6 : 7;
+  return `<div class="rost" style="${teamVars(t)}">
+    <div class="rost-head">${crest(t)}<div><h3>${esc(t.name)}</h3><span class="dim">Roster · ${t.squad} player${t.squad === 1 ? "" : "s"} · ${t.w}–${t.l}</span></div>
+      <div class="rost-grade"><span>Team grade</span>${t.ovr != null ? `<b class="g-${esc(t.grade)}">${esc(t.grade)} ${t.ovr}</b>` : "<b>–</b>"}</div></div>
+    <div class="rost-body">
+      <div class="leaders">${lead.map(p => banner(p, true)).join("")}</div>
+      ${rest.length ? `<div class="bgrid" style="--cols:${cols}">${rest.map(p => banner(p, false)).join("")}</div>` : `<div class="empty bgrid-empty">No other players yet</div>`}
+    </div>
+    <p class="dim rost-foot">Click a player to see their card and skill sheet.</p></div>`;
+}
+
+// ---- pop-up: the player's /rating card and skill sheet, drawn by the bot
+const CARD_BASE = DATA_URL ? DATA_URL.replace(/data\.json$/, "") : "";
+function showCard(el) {
+  const key = el.dataset.key, v = el.dataset.v, name = el.getAttribute("aria-label")?.replace(/: player card$/, "") || "";
+  let m = $("#cardpop");
+  if (!m) {
+    document.body.insertAdjacentHTML("beforeend", `<div id="cardpop" class="pop" role="dialog" aria-modal="true" aria-labelledby="pop-title" hidden>
+      <div class="pop-box"><div class="pop-top"><b id="pop-title"></b>
+        <div class="pop-tabs"><button type="button" data-l="card" aria-pressed="true">Player card</button><button type="button" data-l="sheet" aria-pressed="false">Skill sheet</button></div>
+        <button type="button" class="pop-x" aria-label="Close">✕</button></div>
+        <div class="pop-img"><img alt=""><p class="pop-msg" hidden>This card isn't available yet. The bot draws it within a few minutes of a player's first match.</p></div></div></div>`);
+    m = $("#cardpop");
+    m.addEventListener("click", e => {
+      if (e.target === m || e.target.closest(".pop-x")) return hideCard();
+      const b = e.target.closest(".pop-tabs button"); if (b) setLayout(b.dataset.l);
+    });
+    $("img", m).addEventListener("error", () => { $("img", m).hidden = true; $(".pop-msg", m).hidden = false; });
+    $("img", m).addEventListener("load", () => { $("img", m).hidden = false; $(".pop-msg", m).hidden = true; });
+  }
+  m.dataset.key = key; m.dataset.v = v;
+  $("#pop-title").textContent = name;
+  m.hidden = false; document.body.style.overflow = "hidden";
+  setLayout("card");
+  $(".pop-x", m).focus();
+}
+function setLayout(l) {
+  const m = $("#cardpop");
+  m.querySelectorAll(".pop-tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === l));
+  const img = $("img", m);
+  img.alt = $("#pop-title").textContent + (l === "card" ? " player card" : " skill sheet");
+  img.src = `${CARD_BASE}cards/${m.dataset.key}-${l}.webp?v=${encodeURIComponent(m.dataset.v)}`;
+}
+function hideCard() { const m = $("#cardpop"); if (m) { m.hidden = true; $("img", m).removeAttribute("src"); } document.body.style.overflow = ""; }
+document.addEventListener("click", e => { const el = e.target.closest(".has-card"); if (el) showCard(el); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") hideCard();
+  const el = e.target.closest?.(".has-card");
+  if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); showCard(el); }
+});
 
 function results(D, n) {
   const list = D.results.slice(0, n);
