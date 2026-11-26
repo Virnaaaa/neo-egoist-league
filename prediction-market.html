@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Prediction Market · Neo Egoist League</title>
+<meta name="description" content="Odds for every club and every match of the weekend, moved by the server's /predict picks.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ani's Neo Egoist League">
+<meta property="og:title" content="Prediction Market · Neo Egoist League">
+<meta property="og:description" content="Odds for every club and every match of the weekend, moved by the server's /predict picks.">
+<meta property="og:url" content="https://virnaaaa.github.io/neo-egoist-league/prediction-market.html">
+<meta property="og:image" content="https://virnaaaa.github.io/neo-egoist-league/og/prediction-market.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#4f8cff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css?v=pm1126">
+<meta name="league-data" content="https://raw.githubusercontent.com/Virnaaaa/neo-egoist-league/data/data.json">
+</head>
+<body data-page="pmarket">
+<main class="page">
+<div class="hero">
+  <div class="eyebrow" id="mk-eyebrow">The odds update every 5 minutes</div>
+  <h1>Prediction <span>market</span></h1>
+  <p class="lede">Odds for every match this weekend and for every club. They come from each club's official results and squad
+    strength, then move with the server's <code>/predict</code> picks: the more people back a side, the shorter its odds.</p>
+  <div class="mk-pays" id="mk-pays"></div>
+</div>
+<section id="board"><h2>Match odds</h2><p class="sub" id="mk-sub">Win odds for both clubs, and the odds of every exact set score.</p><div id="mk-board"><p class="loading">Loading the odds…</p></div></section>
+<section id="clubs"><h2>Every club</h2><p class="sub">Strength, form and each club's odds for its matches this weekend. A <b>clean weekend</b> means winning every one of them.</p><div id="mk-teams"></div></section>
+<section id="how"><h2>How the odds work</h2>
+  <div class="grid2">
+    <div class="box"><h4>Decimal odds</h4><p><b>×2.00</b> means a 1 in 2 chance (50%), <b>×4.00</b> a 1 in 4 chance (25%). The shorter the odds, the bigger the favourite. These are fair odds: no house edge.</p></div>
+    <div class="box"><h4>Strength</h4><p>Every club starts at 1500. Each official match moves it, set by set: beating a stronger club moves it more. Once players have an Overall, a stronger squad adds to it too.</p></div>
+    <div class="box"><h4>The server's picks</h4><p>Each <code>/predict pick</code> pushes the odds toward the side it backs. The model counts as <span id="mk-cw">8</span> picks, so a few picks nudge the odds and a crowd moves them a lot.</p></div>
+    <div class="box"><h4>What you can win</h4><p>The odds are a guide to who's favoured. <code>/predict</code> pays fixed Ego Credits whatever the odds: <span id="mk-ec">30 EC for the exact score, 10 EC for the right winner</span>.</p></div>
+  </div>
+</section>
+</main>
+<script src="site.js?v=pm1126"></script>
+</body>
+</html>

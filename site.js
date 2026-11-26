@@ -3,7 +3,7 @@
 // in <body data-page="...">. No library, no build step.
 "use strict";
 
-const PAGES = [["index.html", "Home", "home"], ["fixtures.html", "Fixtures", "fixtures"], ["matches.html", "Matches", "matches"],
+const PAGES = [["index.html", "Home", "home"], ["fixtures.html", "Fixtures", "fixtures"], ["prediction-market.html", "Prediction Market", "pmarket"], ["matches.html", "Matches", "matches"],
   ["teams.html", "Teams", "teams"], ["players.html", "Players", "players"], ["market.html", "Market", "market"],
   ["traits.html", "Traits", "traits"], ["news.html", "News", "news"], ["records.html", "Records", "records"], ["guide.html", "Guide", "guide"]];
 const page = document.body.dataset.page;
@@ -328,6 +328,35 @@ const draw = {
     rail.addEventListener("click", e => { const b = e.target.closest("button[data-k]"); if (b) { go(b.dataset.k, cur.p && cur.p.id); if (innerWidth < 760) rail.scrollIntoView({ block: "start" }); } });
     addEventListener("hashchange", () => go(...parse()));
     go(...parse());
+  },
+
+  pmarket(D) {
+    const M = D.market, ec = (D.points || {}).ec;
+    if (ec) {
+      $("#mk-ec").textContent = `${ec.exact} EC for the exact score, ${ec.winner} EC for the right winner`;
+      $("#mk-pays").innerHTML = `<span class="pill open">/predict pays ${ec.exact} EC for the exact score · ${ec.winner} EC for the right winner</span>`;
+    }
+    if (!M || !M.board.length) {
+      $("#mk-board").innerHTML = `<div class="empty">No matches on the schedule yet</div>`;
+      $("#mk-teams").innerHTML = "";
+      return;
+    }
+    $("#mk-cw").textContent = M.crowd_weight;
+    $("#mk-eyebrow").textContent = `Week ${M.week} · the odds update every 5 minutes`;
+    const days = ["FRIDAY", "SATURDAY", "SUNDAY"].map(d => [d, M.board.filter(b => b.day === d)]).filter(([, l]) => l.length);
+    $("#mk-board").innerHTML = `<div class="mk-days">${days.map(([d, list]) => `<div><div class="fx-dh"><b>${d}</b><span>all times EST</span></div>
+      <div class="mk-grid">${list.map(b => mkCard(D, b)).join("")}</div></div>`).join("")}</div>`;
+    $("#mk-teams").innerHTML = `<div class="tbl"><table><thead><tr><th>#</th><th>Club</th><th class="num">Strength</th><th>Form</th>
+      <th>This weekend</th><th class="num">Expected wins</th><th class="num">Clean weekend</th></tr></thead><tbody>${M.teams.map((t, i) => {
+        const T = teamOf(D, t.name);
+        return `<tr style="${teamVars(T)}"><td class="rank">${i + 1}</td>
+          <td><a class="who" href="teams.html#${slug(t.name)}">${crest(T)}<b>${esc(t.name)}</b></a></td>
+          <td class="num"><b>${t.rating}</b></td><td>${formDots(D, t.name)}</td>
+          <td><div class="mk-games">${t.games.map(g => { const O = teamOf(D, g.opp);
+            return `<span class="mk-g ${g.won === true ? "W" : g.won === false ? "L" : ""}" title="${esc(g.day[0] + g.day.slice(1).toLowerCase())} ${clock12(g.hour)} PM · ${Math.round(g.p * 100)}% to win">${g.home ? "vs" : "at"} ${esc(O ? O.short : g.opp)} <b>${mkOdd(g.odds)}</b></span>`; }).join("") || `<span class="dim">No match</span>`}</div></td>
+          <td class="num">${t.games.length ? t.exp_wins.toFixed(1) : "–"}</td>
+          <td class="num">${t.clean_odds ? `<b class="mk-o">${mkOdd(t.clean_odds)}</b>` : "–"}</td></tr>`; }).join("")}</tbody></table></div>`;
+    tick();
   },
 
   fixtures(D) {
@@ -743,6 +772,27 @@ function tick() {
   document.querySelectorAll("[data-ko]").forEach(el => { const t = until(+el.dataset.ko); el.textContent = t; el.classList.toggle("live", t === "LIVE"); });
 }
 setInterval(() => { if (document.querySelector("[data-ko]")) tick(); }, 1000);
+function mkOdd(o) { return "×" + (+o).toFixed(2); }
+function mkCard(D, b) {
+  const h = teamOf(D, b.home), a = teamOf(D, b.away), r = b.result;
+  const win = r ? (r.hs > r.as_ ? b.home : b.away) : null;
+  const ph = Math.round(b.p_home * 100);
+  const status = r ? `<a class="pill mk-ft" href="matches.html#m-${r.match_id}">Full time ${r.hs}–${r.as_}</a>`
+    : b.status === "closed" ? `<span class="pill closed">Kicked off</span>`
+    : `<span class="pill open">Open · <span data-ko="${b.kickoff}">${until(b.kickoff)}</span></span>`;
+  const side = (T, name, o, p, away) => `<div class="mk-side${away ? " away" : ""}${win ? (win === name ? " won" : " lost") : p > 50 ? " fav" : ""}">
+      ${crest(T)}<div class="mk-t"><b>${esc(name)}</b><span class="mk-odd">${mkOdd(o)} <small>${p}% to win</small></span></div></div>`;
+  const hit = r ? `${r.hs}-${r.as_}` : null;
+  const moved = b.picks ? `Before the picks: ${mkOdd(b.model_home)} / ${mkOdd(b.model_away)}` : "No picks yet: these are the starting odds";
+  return `<article class="mk" style="--h1:${h ? h.colours[0] : "#333"};--a1:${a ? a.colours[0] : "#333"}">
+    <header><span class="mk-when">${clock12(b.hour)} PM EST</span>${status}</header>
+    <div class="mk-main">${side(h, b.home, b.odds_home, ph, false)}${side(a, b.away, b.odds_away, 100 - ph, true)}</div>
+    <div class="fx-bar" role="img" aria-label="${ph}% ${esc(b.home)}, ${100 - ph}% ${esc(b.away)}"><i style="width:${ph}%"></i></div>
+    <div class="mk-scores" aria-label="Exact set score odds">${b.scores.map((x, i) => `<span class="mk-sc ${i < 3 ? "h" : "a"}${x.s === hit ? " hit" : ""}" title="${Math.round(x.p * 100)}% chance${x.picks ? ` · ${x.picks} pick${x.picks === 1 ? "" : "s"}` : ""}">
+      <b>${x.s.replace("-", "–")}</b>${mkOdd(x.odds)}${x.picks ? `<i>🔮 ${x.picks}</i>` : ""}</span>`).join("")}</div>
+    <small class="mk-foot"><span>🔮 ${b.picks} pick${b.picks === 1 ? "" : "s"}${b.picks ? ` · ${Math.round(b.picks_home / b.picks * 100)}% back ${esc(h ? h.short : b.home)}` : ""}</span><span>${moved}</span></small>
+  </article>`;
+}
 function fixtureCard(D, f) {
   const h = teamOf(D, f.home), a = teamOf(D, f.away), r = f.result;
   const pct = f.picks ? Math.round(f.picks_home / f.picks * 100) : 50;
@@ -855,7 +905,7 @@ function moneyChart(D) {
 
 // ---- motion: scroll reveal with a stagger, and numbers that count up. Off when the visitor asks for reduced motion.
 const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
-const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .pc, .res, .bar-row, .move, .fcard, .wanted, .box, .tbl tbody tr, .wk-event, .chips a, .fx, .rec, .news, .aw, .hof, .pp-tile";
+const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .pc, .res, .bar-row, .move, .fcard, .wanted, .box, .tbl tbody tr, .wk-event, .chips a, .fx, .rec, .news, .aw, .hof, .pp-tile, .mk";
 const COUNT = ".club .stats b, .fact b, .bar-row .amt, .wanted .amt, .pc-ovr b, .rost-grade b, td.num b";
 const seen = new WeakSet();
 const io = MOTION ? new IntersectionObserver(es => es.forEach(e => {
