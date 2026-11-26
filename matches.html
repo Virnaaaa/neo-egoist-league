@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Matches · Neo Egoist League</title>
+<meta name="description" content="Every match in full: sets, ratings, Man of the Match, the fans' vote, form and head-to-head.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ani's Neo Egoist League">
+<meta property="og:title" content="Matches · Neo Egoist League">
+<meta property="og:description" content="Every match in full: sets, ratings, Man of the Match, the fans' vote, form and head-to-head.">
+<meta property="og:url" content="https://virnaaaa.github.io/neo-egoist-league/matches.html">
+<meta property="og:image" content="https://virnaaaa.github.io/neo-egoist-league/og/matches.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#4f8cff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css?v=hub1126">
+<meta name="league-data" content="https://raw.githubusercontent.com/Virnaaaa/neo-egoist-league/data/data.json">
+</head>
+<body data-page="matches">
+<main class="page">
+<div class="hero">
+  <div class="eyebrow">Every match, in full</div>
+  <h1>Match <span>centre</span></h1>
+  <p class="lede">Open a match for its sets, every player's rating and the Man of the Match, plus the fans' pick from the Discord vote.</p>
+</div>
+<div id="mdetail" hidden></div>
+<div id="mbrowse" class="mx">
+  <section class="mx-main"><h2>Results</h2><div class="filters"><select id="mf-team" aria-label="Club"></select>
+    <select id="mf-type" aria-label="Type"><option value="">Scrims and friendlies</option><option value="scrim">Official (scrims)</option><option value="friendly">Friendlies</option></select></div>
+    <div id="mlist"><p class="loading">Loading matches…</p></div></section>
+  <aside class="mx-side"><section><h2>Form guide</h2><p class="sub">Last five official matches, newest on the right.</p><div id="form"></div></section>
+    <section><h2>Head to head</h2><div class="filters"><select id="h2h-a" aria-label="First club"></select><select id="h2h-b" aria-label="Second club"></select></div><div id="h2h" class="box"></div></section></aside>
+</div>
+</main>
+<script src="site.js?v=hub1126"></script>
+</body>
+</html>
