@@ -555,3 +555,24 @@ footer.site .in { max-width: 1180px; margin: 0 auto; padding-block: 22px 30px; d
   .roster-lead .pc { flex: 1 1 0; max-width: 200px; }
   .roster.under { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 8px; margin-inline: 12px; }
 }
+
+/* traits page */
+.st-grid, .tr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.st, .tr { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 16px;
+  border-top: 3px solid var(--tc); min-width: 0; }
+.st h3, .tr h3 { margin: 4px 0 4px; font: 700 19px/1.25 var(--display); letter-spacing: .02em; }
+.tr p { margin: 0; color: var(--muted); font-size: 14px; }
+.st-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.st-top .eyebrow { color: var(--tc); margin: 0; }
+.st-state, .tr-n { font: 600 11px var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.st.held .st-state, .st.evolved .st-state { color: var(--tc); }
+.st.evolved { background: linear-gradient(160deg, rgba(214,172,74,.16), var(--panel) 60%); border-color: rgba(214,172,74,.5); }
+.st.locked { opacity: .62; }
+.st-evo { margin: 0 0 10px; color: var(--muted); font-size: 13.5px; }
+.st-evo b { color: var(--fg); font-weight: 600; }
+.st .who small { display: block; color: var(--muted); font-size: 12.5px; }
+.st .who div { min-width: 0; }
+.st p.dim { margin: 0; font-size: 13.5px; }
+.tr-who { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.tr-who .av { width: 28px; height: 28px; font-size: 10px; }
+.tr-who .more { font: 600 12px var(--display); color: var(--muted); align-self: center; padding-left: 4px; }

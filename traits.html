@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Traits · Neo Egoist League</title>
+<meta name="description" content="Every trait in the league, how to earn it, who has it, and the 20 style traits.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css?v=traits1126">
+<meta name="league-data" content="https://raw.githubusercontent.com/Virnaaaa/neo-egoist-league/data/data.json">
+</head>
+<body data-page="traits">
+<main class="page">
+<div class="hero">
+  <div class="eyebrow">Traits</div>
+  <h1>Every <span>trait</span></h1>
+  <p class="lede" id="trules">Traits are earned from match stats and show on a player's <code>/rating</code> card. Players need 3 matches first.</p>
+</div>
+<section id="style-sec">
+  <h2>Style traits</h2>
+  <p class="sub" id="style-rules">One holder each: the best player of each main style.</p>
+  <div class="st-grid" id="style"><p class="loading">Loading style traits…</p></div>
+</section>
+<section>
+  <h2>All traits</h2>
+  <div class="finder">
+    <input id="tq" type="search" placeholder="Search a trait or a player" aria-label="Search traits">
+    <span class="count" id="tcount"></span>
+  </div>
+  <div class="finder" id="tcats" role="group" aria-label="Filter by category"></div>
+  <div class="tr-grid" id="tlist"><p class="loading">Loading traits…</p></div>
+</section>
+</main>
+<script src="site.js?v=traits1126"></script>
+</body>
+</html>

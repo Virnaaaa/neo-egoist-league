@@ -4,7 +4,7 @@
 "use strict";
 
 const PAGES = [["index.html", "Home", "home"], ["teams.html", "Teams", "teams"], ["players.html", "Players", "players"],
-  ["market.html", "Market", "market"], ["guide.html", "Guide", "guide"]];
+  ["market.html", "Market", "market"], ["traits.html", "Traits", "traits"], ["guide.html", "Guide", "guide"]];
 const page = document.body.dataset.page;
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -151,7 +151,7 @@ const draw = {
     const q = $("#q");
     function render() {
       const t = q.value.trim().toLowerCase(), team = sel.value;
-      const list = D.players.filter(p => (!t || (p.name + " " + (p.team || "") + " " + (p.style || "")).toLowerCase().includes(t))
+      const list = D.players.filter(p => (!t || (p.name + " " + (p.team || "") + " " + (p.style || "") + " " + (p.traits || []).map(x => x[0]).join(" ")).toLowerCase().includes(t))
         && (!team || (team === "-" ? !p.team : p.team === team)))
         .sort((a, b) => {
           const x = a[key], y = b[key];
@@ -169,6 +169,57 @@ const draw = {
       $("#pcount").textContent = list.length + " of " + D.players.length + " players";
     }
     q.addEventListener("input", render); sel.addEventListener("change", render);
+    render();
+  },
+
+  traits(D) {
+    const T = D.traits;
+    if (!T) { $("#tlist").innerHTML = `<div class="empty">Traits aren't in the league data yet</div>`; $("#style").innerHTML = ""; return; }
+    const CAT = Object.fromEntries(T.categories.map(c => [c.key, c]));
+    const byKey = Object.fromEntries(D.players.map(p => [p.id, p]));
+    const who = {};                                   // trait name -> players who have it
+    D.players.forEach(p => (p.traits || []).forEach(([n]) => (who[n] = who[n] || []).push(p)));
+    $("#trules").innerHTML = `Traits are earned from match stats and show on a player's <code>/rating</code> card. Players need <b>${T.min_matches} matches</b> first. "Averages … per match" means their total divided by every match they played.`;
+    $("#style-rules").innerHTML = `One holder each: the best player of each main style (<b>${T.style_min_matches}+ matches</b>, highest average rating). A style needs <b>${T.style_min_mains}+ players</b> maining it before its trait exists. At <b>${T.evolve_matches}+ matches</b> and a <b>${(+T.evolve_avg).toFixed(1)}+ average</b> the title evolves.`;
+    const gold = CAT.style ? CAT.style.colour : "#d6ac4a";
+    $("#style").innerHTML = T.style.map(s => {
+      const h = s.holder ? byKey[s.holder] : null;
+      const state = h ? (s.is_evolved ? "Evolved" : "Held") : s.mains >= T.style_min_mains ? "Open" : "Locked";
+      const body = h
+        ? `<div class="who">${avatar(h)}<div><b>${esc(h.name)}</b><small>${esc(h.team || "No team")} · ${(+s.avg).toFixed(2)} avg</small></div></div>`
+        : s.mains >= T.style_min_mains
+          ? `<p class="dim">No ${esc(s.style)} main has ${T.style_min_matches} matches yet</p>`
+          : `<p class="dim">Unlocks when ${T.style_min_mains} players main ${esc(s.style)} (${s.mains}/${T.style_min_mains})</p>`;
+      return `<article class="st ${state.toLowerCase()}" style="--tc:${gold}">
+        <div class="st-top"><span class="eyebrow">${esc(s.style)}</span><span class="st-state">${state}</span></div>
+        <h3>${esc(h && s.title ? s.title : s.name)}</h3>
+        <p class="st-evo">${s.is_evolved ? `Evolved from ${esc(s.name)}` : `Evolves into <b>${esc(s.evolved)}</b>`}</p>
+        ${body}</article>`;
+    }).join("");
+    let cat = "all";
+    const cats = $("#tcats");
+    cats.innerHTML = [["all", "All"], ...T.categories.filter(c => c.key !== "style").map(c => [c.key, c.name])]
+      .map(([k, l]) => `<button type="button" data-c="${k}" aria-pressed="${k === cat}">${esc(l)}</button>`).join("");
+    cats.addEventListener("click", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      cat = b.dataset.c; cats.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); render();
+    });
+    const q = $("#tq");
+    function render() {
+      const t = q.value.trim().toLowerCase();
+      const list = T.list.filter(x => (cat === "all" || x.cat === cat) && (!t || (x.name + " " + x.desc + " " +
+        (who[x.name] || []).map(p => p.name).join(" ")).toLowerCase().includes(t)));
+      $("#tlist").innerHTML = list.map(x => {
+        const c = CAT[x.cat] || { name: x.cat, colour: "#4f8cff" }, ps = who[x.name] || [];
+        return `<article class="tr" style="--tc:${c.colour}">
+          <div class="st-top"><span class="eyebrow">${esc(c.name)}</span><span class="tr-n">${ps.length ? ps.length + " player" + (ps.length > 1 ? "s" : "") : "Nobody yet"}</span></div>
+          <h3>${esc(x.name)}</h3><p>${esc(x.desc)}</p>
+          ${ps.length ? `<div class="tr-who">${ps.slice(0, 12).map(p => `<span title="${esc(p.name)}${p.team ? " · " + esc(p.team) : ""}">${avatar(p)}</span>`).join("")}${ps.length > 12 ? `<span class="more">+${ps.length - 12}</span>` : ""}</div>` : ""}
+        </article>`;
+      }).join("") || `<div class="empty">No traits match</div>`;
+      $("#tcount").textContent = list.length + " of " + T.list.length + " traits";
+    }
+    q.addEventListener("input", render);
     render();
   },
 
