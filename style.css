@@ -634,3 +634,18 @@ footer.site .in { max-width: 1180px; margin: 0 auto; padding-block: 22px 30px; d
   .tc-head h3 { font-size: 17px; }
   .tc-word { font-size: 11px; }
 }
+.tc-pick { display: grid; gap: 4px; padding: 4px 20px 12px; }
+.tc-pick span { font: 600 12px "Barlow Condensed", var(--display); letter-spacing: .12em; color: var(--tsub); }
+.tc-pick select { width: 100%; background: #0b121e; border: 1px solid #22304a; color: var(--tink); border-radius: 8px; padding: 8px 10px; font: 13px var(--mono); }
+.tc-cat.off .tc-cn, .tc-cat.off .tc-cc { color: #46506a; }
+.tc-meta { font: 600 15px "Barlow Condensed", var(--display); letter-spacing: .05em; color: var(--tsub); margin-top: 6px; }
+.tc-pl { display: flex; align-items: center; gap: 12px; }
+.tc-pl .av { width: 44px; height: 44px; font-size: 14px; }
+.tc-bar { display: block; height: 6px; border-radius: 3px; background: var(--track); margin-top: 10px; overflow: hidden; }
+.tc-bar i { display: block; height: 100%; border-radius: 3px; }
+.tc-mod.prog { --mc: #60a5fa; } .tc-mod.prog .tc-word { color: #60a5fa; }
+.tc-mod.gate { --mc: #fb923c; } .tc-mod.gate .tc-word { color: #fb923c; }
+.tc-mod.blk .tc-word, .tc-why.bad { color: #ef4444; }
+@media (max-width: 760px) {
+  .tc-pick { flex: none; padding: 4px 8px; min-width: 200px; }
+}

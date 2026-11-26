@@ -180,102 +180,151 @@ const draw = {
     const who = {};                                   // trait name -> players who have it
     D.players.forEach(p => (p.traits || []).forEach(([n, c]) => { if (c !== "style") (who[n] = who[n] || []).push(p); }));
     const short = { attack: "ATT", passing: "PAS", dribbling: "DRI", defending: "DEF", goalkeeping: "GOA", mentality: "REP", style: "STY" };
-    $("#trules").innerHTML = `Traits are earned from match stats and show on a player's <code>/rating</code> card (players need <b>${T.min_matches} matches</b> first). Pick a category on the left.`;
+    const GOLD = "#f5c442", BLUE = "#60a5fa", ORANGE = "#fb923c", RED = "#ef4444";
+    $("#trules").innerHTML = `Traits are earned from match stats and show on a player's <code>/rating</code> card (players need <b>${T.min_matches} matches</b> first). Pick a category on the left, or pick a player to see their own progress.`;
 
     // one entry per trait, the same shape for stat traits and style traits
-    const items = T.list.map(x => ({ name: x.name, cat: x.cat, desc: x.desc, players: who[x.name] || [] }));
+    const items = T.list.map(x => ({ key: x.name, name: x.name, cat: x.cat, desc: x.desc, players: who[x.name] || [] }));
     T.style.forEach(s => {
       const h = s.holder ? byKey[s.holder] : null;
-      items.push({ name: h && s.title ? s.title : s.name, cat: "style", style: s, holder: h, players: h ? [h] : [],
+      items.push({ key: "S:" + s.style, name: h && s.title ? s.title : s.name, cat: "style", style: s, holder: h, players: h ? [h] : [],
         state: h ? (s.is_evolved ? "evolved" : "held") : s.mains >= T.style_min_mains ? "open" : "locked",
         desc: `${s.style} style. ${s.is_evolved ? `Evolved from ${s.name}.` : `Evolves into ${s.evolved} at ${T.evolve_matches}+ matches and a ${(+T.evolve_avg).toFixed(1)}+ average.`}` });
     });
     const keys = T.categories.map(c => c.key);
-    const stat = k => { const es = items.filter(e => e.cat === k); return { total: es.length, claimed: es.filter(e => e.players.length).length }; };
-    const totals = { total: items.length, claimed: items.filter(e => e.players.length).length };
+    const people = D.players.filter(p => p.tp).sort((a, b) => a.name.localeCompare(b.name));
+    let cur = { k: "overview", p: null };
+
+    // a player's view of one trait: [code, frac, why] (e earned, p progress, g gate, b blocked, n no data, x n/a, o other)
+    const tpOf = (p, e) => (p && p.tp && p.tp[e.key]) || ["x", null, "Not tracked"];
+    const applies = c => c !== "x" && c !== "o";
+    function stat(k, p) {
+      const es = items.filter(e => e.cat === k);
+      if (!p) return { total: es.length, have: es.filter(e => e.players.length).length };
+      const cs = es.map(e => tpOf(p, e)[0]);
+      return { total: cs.filter(applies).length, have: cs.filter(c => c === "e").length };
+    }
+    function totals(p) { return keys.reduce((a, k) => { const s = stat(k, p); a.total += s.total; a.have += s.have; return a; }, { total: 0, have: 0 }); }
 
     const seg = (n, of, col) => `<span class="tc-seg">${Array.from({ length: of }, (_, i) => `<i style="${i < n ? `background:${col}` : ""}"></i>`).join("")}</span>`;
+    const bar = (f, col) => `<span class="tc-bar"><i style="width:${Math.round(Math.max(0, Math.min(1, f)) * 100)}%;background:${col}"></i></span>`;
     const emblem = (name, col, on) => `<span class="tc-emb${on ? " on" : ""}" style="--ec:${col}">${esc((name.replace(/^the /i, "")[0] || "?").toUpperCase())}</span>`;
     const avatars = ps => ps.length ? `<span class="tc-who">${ps.slice(0, 10).map(p => `<span title="${esc(p.name)}${p.team ? " · " + esc(p.team) : ""}">${avatar(p)}</span>`).join("")}${ps.length > 10 ? `<em>+${ps.length - 10}</em>` : ""}</span>` : "";
 
-    function drawRail(sel) {
+    function drawRail() {
+      const p = cur.p, s0 = cur.k;
       rail.innerHTML = `<div class="tc-brand">TRAITS</div>
-        <button type="button" class="tc-ov${sel === "overview" ? " sel" : ""}" data-k="overview">OVERVIEW</button>` +
-        keys.map(k => { const c = CAT[k], s = stat(k);
-          return `<button type="button" class="tc-cat${sel === k ? " sel" : ""}" data-k="${k}" style="--cc:${c.colour}">
-            <span class="tc-cn">${esc(c.name.toUpperCase())}</span><span class="tc-cc">${s.claimed}/${s.total}</span>${seg(s.claimed, Math.min(s.total, 20), c.colour)}</button>`; }).join("");
+        <label class="tc-pick"><span>PLAYER</span><select id="tc-player" aria-label="Show a player's traits">
+          <option value="">Everyone (the league)</option>
+          ${people.map(x => `<option value="${esc(x.id)}"${p && p.id === x.id ? " selected" : ""}>${esc(x.name)}${x.team ? " · " + esc(x.team) : ""}</option>`).join("")}
+        </select></label>
+        <button type="button" class="tc-ov${s0 === "overview" ? " sel" : ""}" data-k="overview">OVERVIEW</button>` +
+        keys.map(k => { const c = CAT[k], s = stat(k, p);
+          return `<button type="button" class="tc-cat${s0 === k ? " sel" : ""}${p && !s.total ? " off" : ""}" data-k="${k}" style="--cc:${c.colour}">
+            <span class="tc-cn">${esc(c.name.toUpperCase())}</span><span class="tc-cc">${p && !s.total ? "N/A" : s.have + "/" + s.total}</span>${seg(s.have, Math.min(s.total || 1, 20), c.colour)}</button>`; }).join("");
+      $("#tc-player").addEventListener("change", ev => go(cur.k, ev.target.value || null));
     }
 
     function module(e) {
-      const c = CAT[e.cat], col = c.colour, n = e.players.length;
-      let word, cls;
-      if (e.cat === "style") {
+      const c = CAT[e.cat], col = c.colour, p = cur.p, s = e.style, h = e.holder;
+      let word, cls = "", extra = "";
+      if (p) {
+        const [code, frac, why] = tpOf(p, e);
+        const st = e.cat === "style";
+        word = { e: st && s && s.is_evolved && h && h.id === p.id ? "EVOLVED" : "EARNED", p: `IN PROGRESS ${Math.round((frac || 0) * 100)}%`,
+          g: "MATCH GATE", b: st ? "HELD BY ANOTHER" : "BLOCKED", n: st ? "LOCKED" : "NO DATA YET",
+          x: st ? "OTHER STYLE" : "NOT FOR THIS ROLE", o: "OTHER STYLE" }[code];
+        cls = code === "e" ? "on" : applies(code) ? { p: "prog", g: "gate", b: "blk" }[code] || "" : "na";
+        if (code === "p" || code === "g") extra = bar(frac || 0, code === "g" ? ORANGE : BLUE);
+        if (why && code !== "x") extra += `<p class="tc-why ${code === "b" ? "bad" : ""}">&gt; ${esc(why)}</p>`;
+        if (st && h && code !== "e" && code !== "x") extra += `<p class="tc-why on">&gt; Holder: ${esc(h.name)} · ${(+s.avg).toFixed(2)} avg</p>`;
+      } else if (e.cat === "style") {
         word = { evolved: "EVOLVED", held: "HELD", open: "OPEN", locked: "LOCKED" }[e.state];
         cls = e.state === "evolved" || e.state === "held" ? "on" : e.state === "locked" ? "na" : "";
-      } else { word = n ? `EARNED BY ${n}` : "NOBODY YET"; cls = n ? "on" : ""; }
-      const s = e.style, h = e.holder;
-      const line = e.cat !== "style" ? "" : h
-        ? `<p class="tc-why on">&gt; ${esc(h.name)} · ${esc(h.team || "No team")} · ${(+s.avg).toFixed(2)} avg</p>`
-        : s.mains >= T.style_min_mains ? `<p class="tc-why">&gt; No ${esc(s.style)} main has ${T.style_min_matches} matches yet</p>`
-        : `<p class="tc-why">&gt; Unlocks when ${T.style_min_mains} players main ${esc(s.style)} (${s.mains}/${T.style_min_mains})</p>`;
+        extra = h ? `<p class="tc-why on">&gt; ${esc(h.name)} · ${esc(h.team || "No team")} · ${(+s.avg).toFixed(2)} avg</p>`
+          : s.mains >= T.style_min_mains ? `<p class="tc-why">&gt; No ${esc(s.style)} main has ${T.style_min_matches} matches yet</p>`
+          : `<p class="tc-why">&gt; Unlocks when ${T.style_min_mains} players main ${esc(s.style)} (${s.mains}/${T.style_min_mains})</p>`;
+      } else { const n = e.players.length; word = n ? `EARNED BY ${n}` : "NOBODY YET"; cls = n ? "on" : ""; }
       return `<article class="tc-mod ${cls}" style="--mc:${col}"><div class="tc-in">
         <div class="tc-head"><span class="tc-mark"></span>${emblem(e.name, col, cls === "on")}<h3>${esc(e.name.toUpperCase())}</h3><span class="tc-word">${word}</span></div>
-        <p class="tc-desc">${esc(e.desc)}</p>${line}${e.cat === "style" ? "" : avatars(e.players)}</div></article>`;
+        <p class="tc-desc">${esc(e.desc)}</p>${extra}${e.cat === "style" || (p && cls !== "on") ? "" : avatars(e.players)}</div></article>`;
     }
 
-    function top(title, right) {
-      return `<div class="tc-top"><div><div class="tc-kick">TACTICAL CONSOLE · ${esc(title)}</div><div class="tc-title">${esc(D.league || "Neo Egoist League").toUpperCase()}</div></div>
-        <div class="tc-score"><b>${right[0]}</b><small>${right[1]}</small></div></div>`;
+    function top(title) {
+      const p = cur.p, t = totals(p);
+      if (!p) return `<div class="tc-top"><div><div class="tc-kick">TACTICAL CONSOLE · ${esc(title)}</div><div class="tc-title">${esc((D.league || "Neo Egoist League").toUpperCase())}</div>
+        <div class="tc-meta">THE WHOLE LEAGUE · ${D.players.length} PLAYERS</div></div>
+        <div class="tc-score"><b>${t.have} / ${t.total}</b><small>TRAITS HELD IN THE LEAGUE</small></div></div>`;
+      const held = items.find(e => e.cat === "style" && tpOf(p, e)[0] === "e");
+      return `<div class="tc-top"><div><div class="tc-kick">TACTICAL CONSOLE · ${esc(title)}</div>
+        <div class="tc-title tc-pl">${avatar(p)}<span>${esc(p.name.toUpperCase())}</span></div>
+        <div class="tc-meta">${esc((p.team || "No team").toUpperCase())} · ${p.apps} MATCH${p.apps === 1 ? "" : "ES"}${p.pos ? " · " + esc(p.pos) : ""}${p.style ? " · " + esc(p.style.toUpperCase()) : ""}</div>
+        ${held ? `<div class="tc-meta" style="color:${CAT.style.colour}">STYLE TRAIT · ${esc(held.name.toUpperCase())}</div>` : ""}</div>
+        <div class="tc-score"><b>${t.have} / ${t.total}</b><small>EARNED / APPLICABLE</small></div></div>`;
+    }
+
+    function ring(p) {
+      const R = 120, C = 2 * Math.PI * R, n = keys.length, gap = 10, t = totals(p);
+      const arcs = keys.map((k, i) => { const s = stat(k, p), col = CAT[k].colour, len = C / n - gap;
+        const rot = -90 + i * 360 / n + (gap / C) * 180, lab = (-90 + (i + .5) * 360 / n) * Math.PI / 180;
+        return `<circle r="${R}" cx="160" cy="160" fill="none" stroke="#182234" stroke-width="30" stroke-dasharray="${len} ${C}" transform="rotate(${rot} 160 160)"/>
+          ${s.have && s.total ? `<circle r="${R}" cx="160" cy="160" fill="none" stroke="${col}" stroke-width="30" stroke-dasharray="${len * s.have / s.total} ${C}" transform="rotate(${rot} 160 160)" class="tc-arc"/>` : ""}
+          <text x="${160 + (R + 32) * Math.cos(lab)}" y="${160 + (R + 32) * Math.sin(lab)}" fill="${s.total ? col : "#46506a"}" class="tc-al">${short[k]}</text>`; }).join("");
+      const sub = p ? `OF ${t.total} APPLICABLE` : `OF ${t.total} TRAITS HELD`;
+      const mono = p ? `${items.length} traits in game` : `${D.players.filter(x => (x.traits || []).length).length} players with a trait`;
+      return `<svg viewBox="-20 -20 360 360" role="img" aria-label="${t.have} ${sub.toLowerCase()}">${arcs}
+        <text x="160" y="170" class="tc-big">${t.have}</text><text x="160" y="212" class="tc-sub">${sub}</text><text x="160" y="236" class="tc-mono">${mono}</text></svg>`;
     }
 
     function overview() {
-      const R = 120, C = 2 * Math.PI * R, n = keys.length, gap = 10;
-      const arcs = keys.map((k, i) => { const s = stat(k), col = CAT[k].colour, len = C / n - gap;
-        const rot = -90 + i * 360 / n + (gap / C) * 180;
-        const lab = (-90 + (i + .5) * 360 / n) * Math.PI / 180;
-        return `<circle r="${R}" cx="160" cy="160" fill="none" stroke="#182234" stroke-width="30" stroke-dasharray="${len} ${C}" transform="rotate(${rot} 160 160)"/>
-          ${s.claimed ? `<circle r="${R}" cx="160" cy="160" fill="none" stroke="${col}" stroke-width="30" stroke-dasharray="${len * s.claimed / s.total} ${C}" transform="rotate(${rot} 160 160)" class="tc-arc"/>` : ""}
-          <text x="${160 + (R + 32) * Math.cos(lab)}" y="${160 + (R + 32) * Math.sin(lab)}" fill="${col}" class="tc-al">${short[k]}</text>`; }).join("");
+      const p = cur.p;
+      if (p) {
+        const gate = p.apps < T.min_matches;
+        const next = items.filter(e => ["p", "g"].includes(tpOf(p, e)[0]))
+          .sort((a, b) => (tpOf(p, a)[0] === "g" ? 0 : 1) - (tpOf(p, b)[0] === "g" ? 0 : 1) || (tpOf(p, b)[1] || 0) - (tpOf(p, a)[1] || 0)).slice(0, 4);
+        return top("OVERVIEW") + `<div class="tc-ov-grid"><div class="tc-ring">${ring(p)}
+            <div class="tc-gate" style="--mc:${gate ? ORANGE : "#3cc88c"}"><div class="tc-in"><div class="tc-head"><h3 style="color:${gate ? ORANGE : "#3cc88c"}">MATCH GATE</h3><span class="tc-word" style="color:${gate ? ORANGE : "#3cc88c"}">${gate ? "LOCKED" : "CLEARED"}</span></div>
+              ${seg(Math.min(p.apps, T.min_matches), T.min_matches, gate ? ORANGE : "#3cc88c")}<p class="tc-desc">${Math.min(p.apps, T.min_matches)}/${T.min_matches} matches${gate ? " · traits unlock at " + T.min_matches : ""}</p></div></div></div>
+          <div><div class="tc-sec"><span>NEXT OBJECTIVES</span><small>progress = weakest requirement</small></div>
+            ${next.length ? next.map(module).join("") : `<div class="tc-mod"><div class="tc-in"><h3>NOTHING IN PROGRESS</h3><p class="tc-desc">Every trait that fits is earned, or there's no data yet.</p></div></div>`}</div></div>`;
+      }
       const most = items.filter(e => e.cat !== "style" && e.players.length).sort((a, b) => b.players.length - a.players.length).slice(0, 4);
       const held = T.style.filter(s => s.holder).length;
-      return top("OVERVIEW", [`${totals.claimed} / ${totals.total}`, "TRAITS HELD IN THE LEAGUE"]) + `
-        <div class="tc-ov-grid">
-          <div class="tc-ring"><svg viewBox="-20 -20 360 360" role="img" aria-label="${totals.claimed} of ${totals.total} traits held">${arcs}
-            <text x="160" y="170" class="tc-big">${totals.claimed}</text>
-            <text x="160" y="212" class="tc-sub">OF ${totals.total} TRAITS HELD</text>
-            <text x="160" y="236" class="tc-mono">${D.players.filter(p => (p.traits || []).length).length} players with a trait</text></svg>
-            <div class="tc-gate"><div class="tc-in"><div class="tc-head"><h3 style="color:${CAT.style.colour}">STYLE TRAITS</h3><span class="tc-word" style="color:${CAT.style.colour}">${held}/20 HELD</span></div>
-              ${seg(held, 20, CAT.style.colour)}<p class="tc-desc">One holder per style · ${T.style_min_mains}+ mains to unlock · evolves at ${T.evolve_matches}+ matches and ${(+T.evolve_avg).toFixed(1)}+ avg</p></div></div></div>
-          <div><div class="tc-sec"><span>MOST HELD TRAITS</span><small>click a category for every trait</small></div>
-            ${most.length ? most.map(module).join("") : `<div class="tc-mod"><div class="tc-in"><h3>NO TRAITS EARNED YET</h3><p class="tc-desc">Players need ${T.min_matches} matches before any trait shows.</p></div></div>`}</div>
-        </div>`;
+      return top("OVERVIEW") + `<div class="tc-ov-grid"><div class="tc-ring">${ring(null)}
+          <div class="tc-gate"><div class="tc-in"><div class="tc-head"><h3 style="color:${CAT.style.colour}">STYLE TRAITS</h3><span class="tc-word" style="color:${CAT.style.colour}">${held}/20 HELD</span></div>
+            ${seg(held, 20, CAT.style.colour)}<p class="tc-desc">One holder per style · ${T.style_min_mains}+ mains to unlock · evolves at ${T.evolve_matches}+ matches and ${(+T.evolve_avg).toFixed(1)}+ avg</p></div></div></div>
+        <div><div class="tc-sec"><span>MOST HELD TRAITS</span><small>pick a player to see their progress</small></div>
+          ${most.length ? most.map(module).join("") : `<div class="tc-mod"><div class="tc-in"><h3>NO TRAITS EARNED YET</h3><p class="tc-desc">Players need ${T.min_matches} matches before any trait shows.</p></div></div>`}</div></div>`;
     }
 
     function category(k) {
-      const s = stat(k), c = CAT[k];
-      return top(c.name.toUpperCase(), [`${s.claimed} / ${s.total}`, k === "style" ? "STYLE TRAITS HELD" : "TRAITS SOMEONE HAS"]) +
-        `<div class="tc-filter"><input id="tc-q" type="search" placeholder="Search a trait or a player" aria-label="Search traits"></div>
-         <div class="tc-list" id="tc-list"></div>`;
+      return top(CAT[k].name.toUpperCase()) + `<div class="tc-filter"><input id="tc-q" type="search" placeholder="${cur.p ? "Search a trait" : "Search a trait or a player"}" aria-label="Search traits"></div><div class="tc-list" id="tc-list"></div>`;
     }
 
-    function show(k) {
+    function go(k, pid) {
       if (k !== "overview" && !CAT[k]) k = "overview";
-      drawRail(k);
+      cur = { k, p: pid ? byKey[pid] || null : null };
+      if (cur.p && !cur.p.tp) cur.p = null;
+      drawRail();
       main.innerHTML = k === "overview" ? overview() : category(k);
       if (k !== "overview") {
         const q = $("#tc-q"), list = $("#tc-list");
+        const order = { e: 0, p: 1, g: 2, b: 3, n: 4, o: 5, x: 6 };
         const fill = () => {
           const t = q.value.trim().toLowerCase();
-          const es = items.filter(e => e.cat === k && (!t || (e.name + " " + e.desc + " " + e.players.map(p => p.name).join(" ")).toLowerCase().includes(t)));
+          let es = items.filter(e => e.cat === k && (!t || (e.name + " " + e.desc + " " + e.players.map(x => x.name).join(" ")).toLowerCase().includes(t)));
+          if (cur.p) es = es.sort((a, b) => order[tpOf(cur.p, a)[0]] - order[tpOf(cur.p, b)[0]] || (tpOf(cur.p, b)[1] || 0) - (tpOf(cur.p, a)[1] || 0));
           list.innerHTML = es.map(module).join("") || `<div class="empty">No traits match</div>`;
         };
         q.addEventListener("input", fill); fill();
       }
-      if (location.hash.slice(1) !== k) history.replaceState(null, "", "#" + k);
+      const h = "#" + k + (cur.p ? "/p-" + cur.p.id : "");
+      if (location.hash !== h) history.replaceState(null, "", h);
     }
-    rail.addEventListener("click", e => { const b = e.target.closest("button[data-k]"); if (b) { show(b.dataset.k); if (innerWidth < 760) rail.scrollIntoView({ block: "start" }); } });
-    addEventListener("hashchange", () => show(location.hash.slice(1)));
-    show(location.hash.slice(1) || "overview");
+    const parse = () => { const [k, p] = location.hash.slice(1).split("/p-"); return [k || "overview", p || null]; };
+    rail.addEventListener("click", e => { const b = e.target.closest("button[data-k]"); if (b) { go(b.dataset.k, cur.p && cur.p.id); if (innerWidth < 760) rail.scrollIntoView({ block: "start" }); } });
+    addEventListener("hashchange", () => go(...parse()));
+    go(...parse());
   },
 
   market(D) {
