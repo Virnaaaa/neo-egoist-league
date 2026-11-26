@@ -350,7 +350,7 @@ const draw = {
     sel.innerHTML = `<option value="">Every match</option>` + D.teams.map(t => `<option>${esc(t.name)}</option>`).join("");
     $("#cal-btn").addEventListener("click", () => downloadIcs(FX, sel.value));
     const P = D.predictions || [], pts = D.points || { exact: 3, right: 1 };
-    $("#prules").innerHTML = `Use <code>/predict pick</code> in Discord before kick-off. <b>${pts.exact} points</b> for the exact score in sets, <b>${pts.right} point</b> for the right winner. <code>/predict table</code> shows this table in Discord.`;
+    $("#prules").innerHTML = `Use <code>/predict pick</code> in Discord before kick-off. <b>${pts.exact} points${pts.ec ? ` + ${pts.ec.exact} EC` : ""}</b> for the exact score in sets, <b>${pts.right} point${pts.ec ? ` + ${pts.ec.winner} EC` : ""}</b> for the right winner. <code>/predict table</code> shows this table in Discord.`;
     $("#ptab").innerHTML = P.length ? `<div class="tbl"><table><thead><tr><th>#</th><th>Predictor</th><th class="num">Points</th><th class="num">Exact</th><th class="num">Winners</th><th class="num">Picks</th></tr></thead><tbody>${
       P.map((p, i) => `<tr class="${i === 0 && p.pts ? "lead" : ""}"><td class="rank">${i + 1}</td><td><div class="who">${avatar(p)}<b>${esc(p.name)}</b></div></td>
         <td class="num"><b>${p.pts}</b></td><td class="num">${p.exact}</td><td class="num">${p.right}/${p.played}</td><td class="num">${p.n}</td></tr>`).join("")}</tbody></table></div>`
