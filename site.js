@@ -29,10 +29,11 @@ function ago(ts) {
   return Math.round(s / 86400) + " days ago";
 }
 function initials(n) { return esc(String(n || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase()); }
+function avSrc(a) { return /^https:\/\//.test(a) ? a : (typeof CARD_BASE === "string" ? CARD_BASE : "") + a; }
 function avatar(p) {
   const ini = initials(p.name);
   return p.avatar
-    ? `<span class="av"><img src="${esc(p.avatar)}" alt="" loading="lazy" onerror="this.parentNode.textContent='${ini}'"></span>`
+    ? `<span class="av" data-i="${ini}"><img src="${esc(avSrc(p.avatar))}" alt="" loading="lazy" onerror="this.parentNode.textContent=this.parentNode.dataset.i"></span>`
     : `<span class="av">${ini}</span>`;
 }
 function teamVars(t) { return t ? `--c1:${t.colours[0]};--c2:${t.colours[1]}` : ""; }
@@ -714,7 +715,7 @@ function banner(p, big, delay = 0) {
   return `<div class="ban ${big ? "big" : ""} ${p.card ? "has-card" : ""}" style="--bc:${col}${d}" ${attrs}>
     <span class="b-pos">${esc(p.pos || "–")}</span>
     <span class="b-ovr">${p.ovr ?? "–"}<small>/110</small></span>
-    <span class="b-pic">${p.avatar ? `<img src="${esc(p.avatar)}" alt="" onerror="this.remove()">` : ""}<i>${initials(p.name)}</i></span>
+    <span class="b-pic">${p.avatar ? `<img src="${esc(avSrc(p.avatar))}" alt="" onerror="this.remove()">` : ""}<i>${initials(p.name)}</i></span>
     <span class="b-name">${esc(p.name)}</span>${tag}
     <span class="b-stats"><span>AVG<b>${p.apps ? (+p.avg).toFixed(2) : "–"}</b></span><span>MATCHES<b>${p.apps}</b></span><span>VALUE<b>${val}</b></span></span>
     <span class="b-grade">${esc(p.grade || "–")}</span></div>`;
