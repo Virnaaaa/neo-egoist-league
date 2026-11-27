@@ -18,7 +18,7 @@
 <meta name="theme-color" content="#4f8cff">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="style.css?v=sec1127">
+<link rel="stylesheet" href="style.css?v=hype1127">
 <meta name="league-data" content="https://raw.githubusercontent.com/Virnaaaa/neo-egoist-league/data/data.json">
 </head>
 <body data-page="ecp">
@@ -35,10 +35,12 @@
 <section id="stakes"><h2>Stakes</h2><p class="sub">Placed before kick-off with <code>/stake</code>, odds fixed when you stake, paid by themselves once the match is logged. Check yours first with <code>/stake odds</code>.</p>
   <div class="tbl"><table><thead><tr><th>Stake</th><th>Wins when</th><th>Odds from</th></tr></thead><tbody>
     <tr><td><code>back</code></td><td>Your club wins</td><td>The <a href="prediction-market.html">Prediction Market</a></td></tr>
-    <tr><td><code>cleansheet</code></td><td>Your club wins 3-0 or 3-1</td><td>Same model</td></tr>
     <tr><td><code>comeback</code></td><td>Your club loses set 1 and still wins</td><td>Same model</td></tr>
-    <tr><td><code>hype</code></td><td>You score 1+ or 2+ goals (shown in the kick-off reminder)</td><td>Your scoring record</td></tr>
-    <tr><td><code>hattrick</code></td><td>You score 3+</td><td>Your scoring record</td></tr>
+    <tr><td><code>hype</code> · goals</td><td>You score 2+, 4+ or 6+ goals (every hype call is shown in the kick-off reminder)</td><td>Your scoring record</td></tr>
+    <tr><td><code>hype</code> · clean sheet</td><td>Your club wins 3-0 or 3-1</td><td>Same model as <code>back</code></td></tr>
+    <tr><td><code>hype</code> · hat-trick</td><td>You score 3+ (every hype call pays ×4 at most)</td><td>Your scoring record</td></tr>
+    <tr><td><code>hype</code> · ball wins</td><td>You win the ball back 5+, 8+ or 12+ times (made for midfielders)</td><td>Your tackles, interceptions and defensive moves</td></tr>
+    <tr><td><code>hype</code> · assists</td><td>You get 2+ or 3+ assists</td><td>Your assist record</td></tr>
     <tr><td><code>totw</code></td><td>You make the Team of the Week</td><td>Your Team of the Week record</td></tr>
     <tr><td><code>season</code></td><td>Your club finishes 1st or top 2 (open until week 3)</td><td>A simulated season</td></tr>
     <tr><td><code>duel</code></td><td>Your match rating beats the player you challenged</td><td>Winner takes both stakes</td></tr>
@@ -47,6 +49,6 @@
 <section id="spend"><h2>What it buys</h2><p class="sub">Every price is above the starting grant: play or win stakes first. Nothing changes ratings, Overall or team money.</p><div class="ec-ss" id="ec-spend"></div></section>
 <section id="house"><h2>The House &amp; the richest</h2><p class="sub">Every payout comes from the House Reserve; everything spent goes back into it.</p><div class="pp-tiles" id="ec-house"></div><div id="ec-rich" style="margin-top:14px"></div></section>
 </main>
-<script src="site.js?v=sec1127"></script>
+<script src="site.js?v=hype1127"></script>
 </body>
 </html>

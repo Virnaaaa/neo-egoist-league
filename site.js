@@ -826,7 +826,7 @@ function mkStakes(D, b) {
   const S = b.stakes; if (!S) return "";
   const byId = Object.fromEntries(D.players.map(x => [x.id, x])), nm = id => esc((byId[id] || { name: "A player" }).name);
   const bits = [];
-  S.calls.forEach(c => bits.push(`<span class="mk-st ${c.status}">📣 ${pLink({ id: c.id }, nm(c.id))} ${c.line >= 3 ? "promises a hat-trick" : `calls ${c.line}+ goal${c.line > 1 ? "s" : ""}`}${c.msg ? `: “${esc(c.msg)}”` : ""}</span>`));
+  S.calls.forEach(c => bits.push(`<span class="mk-st ${c.status}">${{ wall: "🧱", playmaker: "🎯", cleansheet: "🔒", hattrick: "🎩" }[c.kind] || "📣"} ${pLink({ id: c.id }, nm(c.id))} ${c.text ? esc(c.text) : c.line >= 3 ? "promises a hat-trick" : `calls ${c.line}+ goal${c.line > 1 ? "s" : ""}`}${c.msg ? `: “${esc(c.msg)}”` : ""}</span>`));
   S.bounties.forEach(x => bits.push(`<span class="mk-st">💰 MOTM bounty on ${pLink({ id: x.id }, nm(x.id))}: <b>${x.pot.toLocaleString()} EC</b></span>`));
   S.duels.forEach(d => bits.push(`<span class="mk-st ${d.status}">⚔️ ${nm(d.a)} vs ${nm(d.b)}: <b>${d.pot.toLocaleString()} EC</b></span>`));
   if (S.backers) bits.push(`<span class="mk-st">🛡️ ${S.backers} player${S.backers === 1 ? "" : "s"} backing their club</span>`);
