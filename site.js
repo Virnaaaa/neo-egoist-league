@@ -866,10 +866,12 @@ function fixtureCard(D, f) {
   const mid = r ? `<a class="fx-score" href="matches.html#m-${r.match_id}">${r.home_sets}–${r.away_sets}<small>Full time</small></a>`
     : `<div class="fx-score up"><span>${clock12(f.hour)}<small>PM EST</small></span><em data-ko="${f.kickoff}">${until(f.kickoff)}</em></div>`;
   const win = r ? (r.home_sets > r.away_sets ? f.home : f.away) : null;
+  // only a played match gets a badge, and it's that match's own result (no form on matches still to come)
+  const res = t => win ? `<span class="form"><i class="${win === t ? "W" : "L"}">${win === t ? "W" : "L"}</i></span>` : "";
   return `<article class="fx" style="--h1:${h ? h.colours[0] : "#333"};--a1:${a ? a.colours[0] : "#333"}">
-    <div class="fx-side ${win && win !== f.home ? "lose" : ""}">${crest(h)}<b>${esc(f.home)}</b>${formDots(D, f.home)}</div>
+    <div class="fx-side ${win && win !== f.home ? "lose" : ""}">${crest(h)}<b>${esc(f.home)}</b>${res(f.home)}</div>
     ${mid}
-    <div class="fx-side away ${win && win !== f.away ? "lose" : ""}">${crest(a)}<b>${esc(f.away)}</b>${formDots(D, f.away)}</div>
+    <div class="fx-side away ${win && win !== f.away ? "lose" : ""}">${crest(a)}<b>${esc(f.away)}</b>${res(f.away)}</div>
     <div class="fx-pred">${f.picks ? `<div class="fx-bar" role="img" aria-label="${pct}% of ${f.picks} predictions back ${esc(f.home)}"><i style="width:${pct}%"></i></div>
       <small><span>${pct}% ${esc(h ? h.short : f.home)}</span><span>🔮 ${f.picks} prediction${f.picks === 1 ? "" : "s"}</span><span>${100 - pct}% ${esc(a ? a.short : f.away)}</span></small>`
       : `<small class="dim"><span>${r ? "No predictions on this one" : "No predictions yet. Make yours with <code>/predict pick</code>"}</span></small>`}</div>
