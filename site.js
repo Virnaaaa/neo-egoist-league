@@ -635,8 +635,14 @@ const draw = {
     let f = "all";
     const apply = () => {
       const t = q.value.trim().toLowerCase(); let n = 0;
-      const rows = document.querySelectorAll("#cmds tbody tr");
+      const rows = document.querySelectorAll("#cmds tbody tr:not(.grp)");
       rows.forEach(r => { const ok = (f === "all" || r.dataset.w === f) && (!t || r.textContent.toLowerCase().includes(t)); r.hidden = !ok; if (ok) n++; });
+      // a topic heading shows only while one of its commands does
+      let head = null, any = false;
+      document.querySelectorAll("#cmds tbody tr").forEach(r => {
+        if (r.classList.contains("grp")) { if (head) head.hidden = !any; head = r; any = false; } else if (!r.hidden) any = true;
+      });
+      if (head) head.hidden = !any;
       $("#count").textContent = n + " of " + rows.length;
     };
     q.addEventListener("input", apply);

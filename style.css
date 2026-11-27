@@ -946,3 +946,21 @@ a.fx-score:hover { text-decoration: none; color: var(--accent); }
 .ec-s b { font: 600 15px var(--mono); color: var(--gold); }
 .ec-s i { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .ec-s.far i { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+
+/* All commands: topic headings, explanation + example (2026-11-27) */
+#cmds tr.grp th { text-align: left; padding: 22px 12px 8px; font: 700 13px var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); background: none; }
+#cmds tbody tr:first-child.grp th { padding-top: 10px; }
+#cmds td { vertical-align: top; }
+#cmds td:first-child code { white-space: nowrap; }
+#cmds .cx { margin: 0 0 6px; line-height: 1.5; }
+#cmds code.ex { display: inline-block; font-size: 12px; opacity: .85; white-space: normal; word-break: break-word; }
+@media (max-width: 700px) {
+  #cmds thead { display: none; }
+  #cmds, #cmds tbody { display: block; width: 100%; }
+  #cmds tbody tr:not(.grp) { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line); }
+  #cmds tbody tr[hidden] { display: none; }
+  #cmds tr.grp { display: block; } #cmds tr.grp th { display: block; padding: 18px 12px 6px; }
+  #cmds td { padding: 0; border: 0; }
+  #cmds td:nth-child(2) { justify-self: start; }
+  #cmds td:nth-child(3) { grid-column: 1 / -1; }
+}
