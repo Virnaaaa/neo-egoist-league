@@ -3,7 +3,7 @@
 // in <body data-page="...">. No library, no build step.
 "use strict";
 
-const PAGES = [["index.html", "Home", "home"], ["fixtures.html", "Fixtures", "fixtures"], ["prediction-market.html", "Prediction Market", "pmarket"], ["matches.html", "Matches", "matches"],
+const PAGES = [["index.html", "Home", "home"], ["fixtures.html", "Fixtures", "fixtures"], ["prediction-market.html", "Prediction Market", "pmarket"], ["ego-credits.html", "Ego Credits", "ecp"], ["matches.html", "Matches", "matches"],
   ["teams.html", "Teams", "teams"], ["players.html", "Players", "players"], ["market.html", "Market", "market"],
   ["traits.html", "Traits", "traits"], ["news.html", "News", "news"], ["records.html", "Records", "records"], ["guide.html", "Guide", "guide"]];
 const page = document.body.dataset.page;
@@ -330,6 +330,50 @@ const draw = {
     go(...parse());
   },
 
+  ecp(D) {
+    const E = D.ec, P = D.shop_prices;
+    if (!E) { $("#ec-earn").innerHTML = `<div class="empty">The Ego Credits data comes with the next update</div>`; return; }
+    const n = x => (+x).toLocaleString("en-US");
+    $("#ec-grant").textContent = n(E.grant);
+    $("#ec-earn").innerHTML = [
+      ["Play", "var(--accent)", `+${n(E.play.scrim)}`, "per scrim", [`+${n(E.play.friendly)} per friendly`, `Paid for up to ${E.caps.scrim} scrims and ${E.caps.friendly} friendlies a day (midnight UTC)`, "Subs count. Removed stats = EC taken back"]],
+      ["Predict", "var(--violet, #8b5cf6)", `+${n(E.predict.exact)}`, "exact score", [`+${n(E.predict.winner)} for the right winner`, "Free: nothing to lose", "No EC on a match you play in"]],
+      ["Stake", "var(--gold)", `${n(E.stake.min)}–${n(E.stake.max)}`, "EC a stake", ["Back your club, call your goals, duel a rival", "Odds fixed when you stake", `Season stakes up to ${n(E.stake.season)}`]],
+      ["Start", "var(--green)", `+${n(E.grant)}`, "once", ["Your first /ec wallet", `Discord account ${E.account_days}+ days old`, "Roblox verified with Bloxlink or RoVer"]],
+    ].map(([t, col, big, unit, lines]) => `<article class="ec-t" style="--tc:${col}"><span class="eyebrow">${t}</span><div class="ec-big"><b>${big}</b><small>${unit}</small></div>${lines.map(l => `<p>${esc(l)}</p>`).join("")}</article>`).join("");
+
+    // this weekend, per club
+    const FX = (D.fixtures || []).filter(f => f.kickoff * 1000 > Date.now() - 3 * 3600e3);
+    const wk = FX.length ? Math.min(...FX.map(f => f.week)) : null, weekend = FX.filter(f => f.week === wk);
+    $("#ec-wk-sub").textContent = wk ? `Week ${wk}: ${weekend.length} official matches. Your club's matches pay ${n(E.play.scrim)} EC each, and you can /predict the others.` : "No matches on the schedule yet.";
+    $("#ec-week").innerHTML = wk ? `<div class="tbl"><table><thead><tr><th>Club</th><th class="num">Matches</th><th class="num">Playing them</th><th class="num">/predict the rest</th><th class="num">Up to</th></tr></thead><tbody>${D.teams.map(t => {
+        const m = weekend.filter(f => f.home === t.name || f.away === t.name).length, rest = weekend.length - m;
+        return `<tr style="${teamVars(t)}"><td><a class="who" href="teams.html#${slug(t.name)}">${crest(t)}<b>${esc(t.name)}</b></a></td><td class="num">${m}</td><td class="num">${n(m * E.play.scrim)}</td><td class="num">${n(rest * E.predict.exact)}</td><td class="num"><b class="ec-g">+${n(m * E.play.scrim + rest * E.predict.exact)}</b></td></tr>`; }).join("")}</tbody></table></div>` : "";
+
+    // over the league
+    const per = D.teams.length ? (weekend.length * 2) / D.teams.length : 3;
+    const row = (lab, sc, fr, pk) => [lab, w => E.grant + Math.round(sc * w) * E.play.scrim + fr * w * E.play.friendly + Math.round(pk * w) * 40];
+    const rows = [row("Bench player: 1 scrim a weekend", 1, 1, 3), row("Regular starter: every club match + a few friendlies", per, 3, 5),
+      row(`Plays everything + ${E.caps.friendly} friendlies a day`, per, E.caps.friendly * 7, 5)];
+    $("#ec-league").innerHTML = `<div class="tbl"><table><thead><tr><th>Player</th><th class="num">3 weeks</th><th class="num">4 weeks</th></tr></thead><tbody>${rows.map(([l, f]) => `<tr><td>${esc(l)}</td><td class="num">${n(f(3))}</td><td class="num"><b>${n(f(4))}</b></td></tr>`).join("")}</tbody></table></div>
+      <p class="sub">About ${per.toFixed(1)} official matches per club a weekend. Starting grant included; /predict counted as an average pick (about 40 EC); stakes not counted.</p>`;
+
+    // spend
+    if (P) {
+      const items = [["Card frame · Bronze", P.frames.bronze], ["Card frame · Silver", P.frames.silver], ["Card frame · Gold", P.frames.gold], ["Card frame · Holo", P.frames.holo],
+        ["Celebration", P.celebration], ["Signature move", P.signature], ["Profile banner", P.banner], ["Rivalry", P.rival],
+        ["Press conference", P.press], ["Contract statement", P.contract], ["Hall of Fame plaque", P.plaque]].sort((a, b) => a[1] - b[1]);
+      const reg = rows[1][1](4);
+      $("#ec-spend").innerHTML = items.map(([l, p]) => `<div class="ec-s${p > reg ? " far" : ""}"><span>${esc(l)}</span><b>${n(p)}</b><i style="width:${Math.min(100, p / reg * 100)}%"></i></div>`).join("")
+        + `<p class="sub">The bar is the price against what a regular starter earns in 4 weeks (${n(reg)} EC). Changing a celebration, move, banner or rival costs ${n(P.change)}.</p>`;
+    }
+    // the House and the richest
+    $("#ec-house").innerHTML = [["House Reserve", E.house], ["EC in wallets", E.circulation], ["Paid by /predict", E.paid_predict], ["Spent in /shop", E.spent], ["Open wallets", E.wallets]]
+      .map(([l, v]) => `<div class="pp-tile"><small>${l}</small><b>${n(v)}</b></div>`).join("");
+    $("#ec-rich").innerHTML = E.richest.length ? `<div class="tbl"><table><thead><tr><th>#</th><th>Member</th><th class="num">EC</th></tr></thead><tbody>${E.richest.map((r, i) => `<tr><td class="rank">${i + 1}</td><td>${pLink(r, `<span class="who">${avatar(r)}<b>${esc(r.name)}</b></span>`)}</td><td class="num"><b>${n(r.balance)}</b></td></tr>`).join("")}</tbody></table></div>`
+      : `<div class="empty">Nobody has opened a wallet yet. Be the first: <code>/ec wallet</code></div>`;
+  },
+
   pmarket(D) {
     const M = D.market, ec = (D.points || {}).ec;
     if (ec) {
@@ -445,7 +489,7 @@ const draw = {
 
   news(D) {
     const N = D.news || [];
-    const KINDS = { poster: "Matchday posters", fortune: "Fortune Edition", quote: "Mixed zone quotes", totw: "Team of the Week", awards: "Season awards" };
+    const KINDS = { poster: "Matchday posters", fortune: "Fortune Edition", quote: "Mixed zone quotes", totw: "Team of the Week", awards: "Season awards", press: "Press room" };
     let f = "";
     const chips = $("#nchips");
     const have = Object.keys(KINDS).filter(k => N.some(n => n.kind === k));
@@ -519,6 +563,11 @@ const draw = {
     const AW = D.awards || [];
     $("#awards").innerHTML = AW.length ? AW.slice().reverse().map(s => `<article class="aw"><h3>${esc(s.title)}</h3>${s.awards.map(a => `<div class="aw-row"><span class="aw-e">${esc(a.emoji)}</span><span><small>${esc(a.award)}</small><b>${a.team ? esc(a.team) : pLink(byId[a.id] || { id: a.id }, esc((byId[a.id] || { name: "Former player" }).name))}</b></span><em>${esc(a.value)}</em></div>`).join("")}</article>`).join("")
       : `<div class="empty">Season awards are handed out at the end of the season</div>`;
+    const PL = (D.plaques || []).slice().reverse();
+    const plBox = $("#plq-list");
+    if (plBox) plBox.innerHTML = PL.length ? PL.map(x => { const q = byId[x.id] || { name: "Former player" };
+        return `<article class="plq">${pLink({ id: x.id }, avatar(q))}<span><b>${pLink({ id: x.id }, esc(q.name))}</b><p>${esc(x.text)}</p><small>${new Date(x.at * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</small></span></article>`; }).join("")
+      : `<div class="empty">No plaques yet. Players buy them with <code>/shop plaque</code> for one of their real achievements.</div>`;
     const SH = D.style_history || [], cur = Object.fromEntries((D.traits ? D.traits.style : []).map(s => [s.style, s.holder]));
     const styles = [...new Set(SH.map(h => h.style))].sort();
     $("#hof").innerHTML = styles.length ? styles.map(st => `<article class="hof"><span class="eyebrow">${esc(st)}</span>${SH.filter(h => h.style === st).map(h => {
@@ -772,6 +821,16 @@ function tick() {
   document.querySelectorAll("[data-ko]").forEach(el => { const t = until(+el.dataset.ko); el.textContent = t; el.classList.toggle("live", t === "LIVE"); });
 }
 setInterval(() => { if (document.querySelector("[data-ko]")) tick(); }, 1000);
+function mkStakes(D, b) {
+  const S = b.stakes; if (!S) return "";
+  const byId = Object.fromEntries(D.players.map(x => [x.id, x])), nm = id => esc((byId[id] || { name: "A player" }).name);
+  const bits = [];
+  S.calls.forEach(c => bits.push(`<span class="mk-st ${c.status}">📣 ${pLink({ id: c.id }, nm(c.id))} ${c.line >= 3 ? "promises a hat-trick" : `calls ${c.line}+ goal${c.line > 1 ? "s" : ""}`}${c.msg ? `: “${esc(c.msg)}”` : ""}</span>`));
+  S.bounties.forEach(x => bits.push(`<span class="mk-st">💰 MOTM bounty on ${pLink({ id: x.id }, nm(x.id))}: <b>${x.pot.toLocaleString()} EC</b></span>`));
+  S.duels.forEach(d => bits.push(`<span class="mk-st ${d.status}">⚔️ ${nm(d.a)} vs ${nm(d.b)}: <b>${d.pot.toLocaleString()} EC</b></span>`));
+  if (S.backers) bits.push(`<span class="mk-st">🛡️ ${S.backers} player${S.backers === 1 ? "" : "s"} backing their club</span>`);
+  return bits.length ? `<div class="mk-stakes">${bits.join("")}</div>` : "";
+}
 function mkOdd(o) { return "×" + (+o).toFixed(2); }
 function mkCard(D, b) {
   const h = teamOf(D, b.home), a = teamOf(D, b.away), r = b.result;
@@ -790,6 +849,7 @@ function mkCard(D, b) {
     <div class="fx-bar" role="img" aria-label="${ph}% ${esc(b.home)}, ${100 - ph}% ${esc(b.away)}"><i style="width:${ph}%"></i></div>
     <div class="mk-scores" aria-label="Exact set score odds">${b.scores.map((x, i) => `<span class="mk-sc ${i < 3 ? "h" : "a"}${x.s === hit ? " hit" : ""}" title="${Math.round(x.p * 100)}% chance${x.picks ? ` · ${x.picks} pick${x.picks === 1 ? "" : "s"}` : ""}">
       <b>${x.s.replace("-", "–")}</b>${mkOdd(x.odds)}${x.picks ? `<i>🔮 ${x.picks}</i>` : ""}</span>`).join("")}</div>
+    ${mkStakes(D, b)}
     <small class="mk-foot"><span>🔮 ${b.picks} pick${b.picks === 1 ? "" : "s"}${b.picks ? ` · ${Math.round(b.picks_home / b.picks * 100)}% back ${esc(h ? h.short : b.home)}` : ""}</span><span>${moved}</span></small>
   </article>`;
 }
@@ -875,10 +935,12 @@ function profile(D, p, q, MID) {
   const recent = (p.hist || []).slice(-8).reverse().map(r => { const m = MID[r[0]]; if (!m) return "";
     const mine = m.players.find(x => x.id === p.id), us = mine && mine.side === "home" ? m.home : m.away, w = winner(m) === us;
     return `<a class="pm" href="matches.html#m-${m.id}"><i class="${w ? "W" : "L"}">${w ? "W" : "L"}</i><span>${esc(m.home)} <b>${sets(m)[0]}–${sets(m)[1]}</b> ${esc(m.away)}<small>${nyDate(m.at)}${r[2] ? "" : " · friendly"}${r[3] ? ` · ⚽${r[3]}` : ""}${r[4] ? ` · 🅰️${r[4]}` : ""}</small></span><b>${(+r[1]).toFixed(1)}</b></a>`; }).join("");
-  return `<div class="pp-head" style="${teamVars(t)}">
-      <div class="pp-id">${avatar(p)}<div><h2>${esc(p.name)} ${role(p.role)}</h2><p>${t ? crest(t) + " " + esc(t.name) : "No team"}${p.pos ? " · " + esc(POS[p.pos] || p.pos) : ""}${p.style ? " · " + esc(p.style) + " main" : ""}</p></div></div>
+  const bn = p.shop && p.shop.banner ? ` bn bn-${esc(p.shop.banner)}` : "";
+  return `<div class="pp-head${bn}" style="${teamVars(t)}">
+      <div class="pp-id"><span class="pp-av${frameCls(p)}">${avatar(p)}</span><div><h2>${esc(p.name)} ${role(p.role)}</h2><p>${t ? crest(t) + " " + esc(t.name) : "No team"}${p.pos ? " · " + esc(POS[p.pos] || p.pos) : ""}${p.style ? " · " + esc(p.style) + " main" : ""}</p></div></div>
       <div class="pp-act">${grade(p.ovr, p.grade)}${p.card ? `<button type="button" class="btn has-card" data-key="${esc(p.id)}" data-v="${esc(p.card)}" aria-label="${esc(p.name)}: player card">View /rating card</button>` : ""}
         <a class="btn ghost" href="traits.html#overview/p-${esc(p.id)}">Trait progress</a></div></div>
+    ${shopBits(D, p)}
     ${q ? `<div class="pp-vs"><span style="color:var(--accent)">● ${esc(p.name)}</span><span style="color:var(--gold)">● ${esc(q.name)}</span></div>` : ""}
     <div class="pp-tiles">${tiles.map(([l, f]) => { const a = f(p), b = q ? f(q) : null, lead = q ? (num(a) > num(b) ? "a" : num(b) > num(a) ? "b" : "") : "";
       return `<div class="pp-tile"><small>${l}</small><b class="${lead === "a" ? "lead" : ""}">${a}</b>${q ? `<b class="vs ${lead === "b" ? "lead" : ""}">${b}</b>` : ""}</div>`; }).join("")}</div>
@@ -887,6 +949,21 @@ function profile(D, p, q, MID) {
     <div class="split"><section class="pp-sec"><h2>Recent matches</h2>${recent || `<div class="empty">No matches yet</div>`}</section>
       <section class="pp-sec"><h2>Traits</h2><p class="sub">Newest first. Dates start from Nov 26, 2026, when the site began tracking them.</p>${traits.length ? `<div class="tl">${traits.map(x => `<div class="tl-i" style="--tc:${CAT[x.c] || "var(--accent)"}"><b>${esc(x.n)}</b><small>${x.at ? "Earned " + new Date(x.at * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Earned before Nov 26, 2026"}</small></div>`).join("")}</div>` : `<div class="empty">No traits yet. <a href="traits.html#overview/p-${esc(p.id)}">See what's close</a></div>`}</section></div>`;
 }
+function shopBits(D, p) {
+  const S = p.shop || {}, byId = Object.fromEntries(D.players.map(x => [x.id, x]));
+  const out = [];
+  if (S.contract) out.push(`<div class="sh-k sh-${esc(S.contract.stance)}"><span class="eyebrow">Contract statement</span><b>${esc(S.contract.label)}</b>${S.contract.text ? `<p>“${esc(S.contract.text)}”</p>` : ""}<small>Until ${new Date(S.contract.until * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</small></div>`);
+  if (S.rival) { const r = byId[S.rival.id] || { name: "Former player" }, h = S.rival;
+    out.push(`<div class="sh-k sh-rival"><span class="eyebrow">⚔️ Rival</span><div class="sh-rv">${pLink({ id: h.id }, avatar(r))}<span><b>${pLink({ id: h.id }, esc(r.name))}</b><small>${h.n ? `${h.n} official meeting${h.n === 1 ? "" : "s"}` : "Haven't met yet"}</small></span><em>${h.w}–${h.l}</em></div>
+      ${h.n ? `<small>Goals ${h.gf}–${h.ga} · Man of the Match ${h.motm}–${h.their_motm}</small>` : ""}</div>`); }
+  if (S.rival_of) out.push(`<div class="sh-k"><span class="eyebrow">Named as a rival by</span><p>${S.rival_of.map(id => pLink({ id }, esc((byId[id] || { name: "Former player" }).name))).join(", ")}</p></div>`);
+  if (S.sig) out.push(`<div class="sh-k"><span class="eyebrow">🌀 Signature move</span><b>${esc(S.sig)}</b></div>`);
+  if (S.celeb) out.push(`<div class="sh-k"><span class="eyebrow">🎉 Celebration</span><p>${esc(S.celeb)}</p></div>`);
+  const pl = (D.plaques || []).filter(x => x.id === p.id);
+  if (pl.length) out.push(`<div class="sh-k sh-pl"><span class="eyebrow">🏛️ Hall of Fame</span>${pl.map(x => `<p>${esc(x.text)}</p>`).join("")}</div>`);
+  return out.length ? `<div class="sh">${out.join("")}</div>` : "";
+}
+function frameCls(p) { const f = p && p.shop && p.shop.frame; return f ? ` fr fr-${esc(f)}` : ""; }
 function moneyChart(D) {
   const H = D.money_history || {}, W = 760, Hh = 260, L = 46, R = 14, T = 14, B = 26;
   const ser = D.teams.map(t => ({ t, pts: (H[t.name] || []).map(([at, v]) => [new Date(String(at).replace(" ", "T") + "Z").getTime(), v]) })).filter(s => s.pts.length);
@@ -905,7 +982,7 @@ function moneyChart(D) {
 
 // ---- motion: scroll reveal with a stagger, and numbers that count up. Off when the visitor asks for reduced motion.
 const MOTION = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
-const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .pc, .res, .bar-row, .move, .fcard, .wanted, .box, .tbl tbody tr, .wk-event, .chips a, .fx, .rec, .news, .aw, .hof, .pp-tile, .mk";
+const REVEAL = ".fc, .album-head, section > h2, section > .sub, .club, .pc, .res, .bar-row, .move, .fcard, .wanted, .box, .tbl tbody tr, .wk-event, .chips a, .fx, .rec, .news, .aw, .hof, .pp-tile, .mk, .ec-t, .ec-s";
 const COUNT = ".club .stats b, .fact b, .bar-row .amt, .wanted .amt, .pc-ovr b, .rost-grade b, td.num b";
 const seen = new WeakSet();
 const io = MOTION ? new IntersectionObserver(es => es.forEach(e => {

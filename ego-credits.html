@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Ego Credits · Neo Egoist League</title>
+<meta name="description" content="Every way to earn Ego Credits (playing, /predict, stakes), what they buy, and the richest members.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ani's Neo Egoist League">
+<meta property="og:title" content="Ego Credits · Neo Egoist League">
+<meta property="og:description" content="Every way to earn Ego Credits (playing, /predict, stakes), what they buy, and the richest members.">
+<meta property="og:url" content="https://virnaaaa.github.io/neo-egoist-league/ego-credits.html">
+<meta property="og:image" content="https://virnaaaa.github.io/neo-egoist-league/og/ego-credits.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#4f8cff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css?v=ec1127">
+<meta name="league-data" content="https://raw.githubusercontent.com/Virnaaaa/neo-egoist-league/data/data.json">
+</head>
+<body data-page="ecp">
+<main class="page">
+<div class="hero">
+  <div class="eyebrow">The league's bot currency</div>
+  <h1>Ego <span>Credits</span></h1>
+  <p class="lede">Everyone starts with <b id="ec-grant">1,500</b> EC. Earn more by playing, with <code>/predict</code> and with <code>/stake</code>, then spend it in <code>/shop</code>.
+    In Discord, <code>/ec earn</code> shows what you can still earn today and this weekend, and <code>/ec wallet</code> your balance. EC can't be bought or cashed out.</p>
+</div>
+<section id="earn"><h2>Ways to earn</h2><div class="ec-ts" id="ec-earn"><p class="loading">Loading…</p></div></section>
+<section id="weekend"><h2>This weekend</h2><p class="sub" id="ec-wk-sub"></p><div id="ec-week"></div></section>
+<section id="league"><h2>Over the whole league</h2><p class="sub">What a player can earn in a 3–4 week league, before stakes.</p><div id="ec-league"></div></section>
+<section id="stakes"><h2>Stakes</h2><p class="sub">Placed before kick-off with <code>/stake</code>, odds fixed when you stake, paid by themselves once the match is logged. Check yours first with <code>/stake odds</code>.</p>
+  <div class="tbl"><table><thead><tr><th>Stake</th><th>Wins when</th><th>Odds from</th></tr></thead><tbody>
+    <tr><td><code>back</code></td><td>Your club wins</td><td>The <a href="prediction-market.html">Prediction Market</a></td></tr>
+    <tr><td><code>cleansheet</code></td><td>Your club wins 3-0 or 3-1</td><td>Same model</td></tr>
+    <tr><td><code>comeback</code></td><td>Your club loses set 1 and still wins</td><td>Same model</td></tr>
+    <tr><td><code>hype</code></td><td>You score 1+ or 2+ goals (shown in the kick-off reminder)</td><td>Your scoring record</td></tr>
+    <tr><td><code>hattrick</code></td><td>You score 3+</td><td>Your scoring record</td></tr>
+    <tr><td><code>totw</code></td><td>You make the Team of the Week</td><td>Your Team of the Week record</td></tr>
+    <tr><td><code>season</code></td><td>Your club finishes 1st or top 2 (open until week 3)</td><td>A simulated season</td></tr>
+    <tr><td><code>duel</code></td><td>Your match rating beats the player you challenged</td><td>Winner takes both stakes</td></tr>
+    <tr><td><code>bounty</code></td><td>Anyone backs a player: they get the pot if they're Man of the Match</td><td>The House keeps it if not</td></tr>
+  </tbody></table></div></section>
+<section id="spend"><h2>What it buys</h2><p class="sub">Every price is above the starting grant: play or win stakes first. Nothing changes ratings, Overall or team money.</p><div class="ec-ss" id="ec-spend"></div></section>
+<section id="house"><h2>The House &amp; the richest</h2><p class="sub">Every payout comes from the House Reserve; everything spent goes back into it.</p><div class="pp-tiles" id="ec-house"></div><div id="ec-rich" style="margin-top:14px"></div></section>
+</main>
+<script src="site.js?v=ec1127"></script>
+</body>
+</html>
