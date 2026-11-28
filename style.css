@@ -976,5 +976,5 @@ a.fx-score:hover { text-decoration: none; color: var(--accent); }
 .bx-new { color: var(--accent); font: 600 12px var(--display); letter-spacing: .12em; }
 .bx-tr { width: 130px; }
 .spark { width: 120px; height: 32px; display: block; }
-@media (max-width: 640px) { .bx-tr, .bx th:nth-child(7), .bx td:nth-child(7) { display: none; }
+@media (max-width: 640px) { .bx-tr { display: none; }
   .bx .bx-club { display: none; } .bx .who b { display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; } .bx td, .bx th { padding-left: 8px; padding-right: 8px; } }

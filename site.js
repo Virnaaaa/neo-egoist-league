@@ -604,13 +604,12 @@ const draw = {
     const chg = p => p.ch == null ? `<span class="bx-new">NEW</span>` : Math.abs(p.ch) < .01 ? `<span class="dim">=</span>`
       : `<span class="${p.ch > 0 ? "pos" : "neg"}">${p.ch > 0 ? "▲" : "▼"} ${Math.abs(p.pct).toFixed(1)}%</span>`;
     const r = D.rules;
-    $("#board").innerHTML = vp.length ? `<div class="tbl bx"><table><thead><tr><th class="num">#</th><th>Player</th><th>Club</th><th class="num">Value</th><th class="num">Change</th><th class="bx-tr">Trend</th><th class="num">Release clause</th></tr></thead><tbody>${
+    $("#board").innerHTML = vp.length ? `<div class="tbl bx"><table><thead><tr><th class="num">#</th><th>Player</th><th>Club</th><th class="num">Value</th><th class="num">Change</th><th class="bx-tr">Trend</th></tr></thead><tbody>${
       vp.map((p, i) => { const c = p.ch > 0 ? "var(--green)" : p.ch < 0 ? "var(--red)" : "var(--muted)";
         return `<tr><td class="num dim">${String(i + 1).padStart(2, "0")}</td>
         <td><a class="who" href="player.html#${esc(p.id)}" style="color:inherit">${avatar(p)}<b>${esc(p.name)}</b></a></td>
         <td>${p.team && T[p.team] ? `<span class="who" style="${teamVars(T[p.team])}">${crest(T[p.team])}<span class="bx-club">${esc(p.team)}</span></span>` : `<span class="dim">${esc(p.team || "–")}</span>`}</td>
-        <td class="num bx-val">${money(p.value)}</td><td class="num">${chg(p)}</td><td class="bx-tr">${spark(p, c)}</td>
-        <td class="num dim">${money(p.value * r.release)}</td></tr>`; }).join("")}</tbody></table></div>`
+        <td class="num bx-val">${money(p.value)}</td><td class="num">${chg(p)}</td><td class="bx-tr">${spark(p, c)}</td></tr>`; }).join("")}</tbody></table></div>`
       : `<div class="empty">No player has been valued yet</div>`;
     const feed = vp.flatMap(p => p.h.map((x, k) => ({ p, v: x[0], at: x[1], why: x[2], vc: x[3], before: k ? p.h[k - 1][0] : null })))
       .sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 30);
@@ -659,7 +658,7 @@ const draw = {
       </div>`;
     }
     const r = D.rules;
-    $("#rules").innerHTML = `Every team started with <b>${money(r.start)}</b>. Each official match pays <b>${money(r.win)}</b> to the winner and <b>${money(r.loss)}</b> to the loser, plus bonuses and penalties of up to ±${money(r.bonus_cap)}. A release clause costs ${r.release}× the player's value${r.squad_cap ? `, and a squad holds up to ${r.squad_cap} players` : ". There's no limit on squad size"}.`;
+    $("#rules").innerHTML = `Every team started with <b>${money(r.start)}</b>. Each official match pays <b>${money(r.win)}</b> to the winner and <b>${money(r.loss)}</b> to the loser, plus bonuses and penalties of up to ±${money(r.bonus_cap)}${r.squad_cap ? `, and a squad holds up to ${r.squad_cap} players` : ". There's no limit on squad size"}.`;
     const rich = [...D.teams].sort((a, b) => b.balance - a.balance);
     const top = Math.max(1, ...rich.map(t => t.balance));
     $("#bars").innerHTML = rich.map((t, i) => `<div class="bar-row" style="${teamVars(t)}">
@@ -672,9 +671,9 @@ const draw = {
       <span class="mnote"><b>${esc(m.t.name)}</b> · ${esc(m.note || "")}</span><span class="when">${nyDate(m.at)}</span></div>`).join("")
       : `<div class="empty">No money has moved yet</div>`;
     const valued = D.players.filter(p => p.value != null).sort((a, b) => b.value - a.value);
-    $("#values").innerHTML = valued.length ? `<div class="tbl"><table><thead><tr><th>Player</th><th>Team</th><th class="num">Value</th><th class="num">Release clause</th></tr></thead><tbody>${
+    $("#values").innerHTML = valued.length ? `<div class="tbl"><table><thead><tr><th>Player</th><th>Team</th><th class="num">Value</th></tr></thead><tbody>${
       valued.map(p => `<tr><td><div class="who">${avatar(p)}<b>${esc(p.name)}</b> ${role(p.role)}</div></td><td>${esc(p.team || "–")}</td>
-        <td class="num"><b>${money(p.value)}</b></td><td class="num dim">${money(p.value * r.release)}</td></tr>`).join("")}</tbody></table></div>`
+        <td class="num"><b>${money(p.value)}</b></td></tr>`).join("")}</tbody></table></div>`
       : `<div class="empty">No player has been valued yet</div>`;
   },
 
