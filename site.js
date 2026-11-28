@@ -4,7 +4,7 @@
 "use strict";
 
 const PAGES = [["index.html", "Home", "home"], ["fixtures.html", "Fixtures", "fixtures"], ["prediction-market.html", "Prediction Market", "pmarket"], ["ego-credits.html", "Ego Credits", "ecp"], ["matches.html", "Matches", "matches"],
-  ["teams.html", "Teams", "teams"], ["players.html", "Players", "players"], ["market.html", "Market", "market"],
+  ["teams.html", "Teams", "teams"], ["players.html", "Players", "players"], ["market.html", "Market", "market"], ["bids.html", "Bids", "bids"],
   ["traits.html", "Traits", "traits"], ["news.html", "News", "news"], ["records.html", "Records", "records"], ["guide.html", "Guide", "guide"]];
 const page = document.body.dataset.page;
 const $ = (s, el = document) => el.querySelector(s);
@@ -575,6 +575,59 @@ const draw = {
         const p = byId[h.id] || { name: "Former player" }, now = cur[st] === h.id && h === SH.filter(x => x.style === st).pop();
         return `<div class="hof-row${now ? " now" : ""}">${avatar(p)}<span><b>${pLink({ id: h.id }, esc(p.name))}</b><small>${esc(h.title)}${h.evolved ? " · evolved" : ""}</small></span><em>${now ? "Holder" : new Date(h.at * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</em></div>`; }).join("")}</article>`).join("")
       : `<div class="empty">No style trait has been held yet</div>`;
+  },
+
+  bids(D) {
+    // the Neo Egoist Exchange: every player's value, change since their last one and a trend line
+    const T = Object.fromEntries(D.teams.map(t => [t.name, t]));
+    const vp = D.players.filter(p => p.value != null).map(p => {
+      const h = p.vhist || [];
+      const before = h.length > 1 ? h[h.length - 2][0] : null;
+      return { ...p, h, before, ch: before == null ? null : p.value - before, pct: before ? (p.value - before) / before * 100 : null };
+    }).sort((a, b) => b.value - a.value);
+    const total = vp.reduce((s, p) => s + p.value, 0);
+    const up = vp.filter(p => p.ch > 0).sort((a, b) => b.pct - a.pct)[0];
+    const down = vp.filter(p => p.ch < 0).sort((a, b) => a.pct - b.pct)[0];
+    const stat = (l, v, s = "") => `<div class="bx-stat"><span>${l}</span><b>${v}</b>${s ? `<small>${s}</small>` : ""}</div>`;
+    $("#bx-stats").innerHTML = stat("Players valued", vp.length) + stat("League index", money(total), "every value added up")
+      + stat("Most valuable", vp[0] ? esc(vp[0].name) : "–", vp[0] ? money(vp[0].value) : "")
+      + stat("Biggest riser", up ? esc(up.name) : "–", up ? `<span class="pos">+${up.pct.toFixed(1)}%</span>` : "")
+      + stat("Biggest faller", down ? esc(down.name) : "–", down ? `<span class="neg">${down.pct.toFixed(1)}%</span>` : "");
+    const spark = (p, c) => {
+      const v = p.h.map(x => x[0]); if (!v.length || v[v.length - 1] !== p.value) v.push(p.value);
+      if (v.length < 2) return `<svg class="spark" viewBox="0 0 120 32" aria-hidden="true"><line x1="2" y1="16" x2="118" y2="16" stroke="var(--line)" stroke-width="2"/></svg>`;
+      const lo = Math.min(...v), hi = Math.max(...v), sp = hi - lo || 1;
+      const pts = v.map((x, i) => [i / (v.length - 1) * 112 + 4, 28 - (x - lo) / sp * 24]);
+      const [lx, ly] = pts[pts.length - 1];
+      return `<svg class="spark" viewBox="0 0 120 32" aria-hidden="true"><polyline fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" points="${pts.map(q => q.join(",")).join(" ")}"/><circle cx="${lx}" cy="${ly}" r="3" fill="${c}"/></svg>`;
+    };
+    const chg = p => p.ch == null ? `<span class="bx-new">NEW</span>` : Math.abs(p.ch) < .01 ? `<span class="dim">=</span>`
+      : `<span class="${p.ch > 0 ? "pos" : "neg"}">${p.ch > 0 ? "▲" : "▼"} ${Math.abs(p.pct).toFixed(1)}%</span>`;
+    const r = D.rules;
+    $("#board").innerHTML = vp.length ? `<div class="tbl bx"><table><thead><tr><th class="num">#</th><th>Player</th><th>Club</th><th class="num">Value</th><th class="num">Change</th><th class="bx-tr">Trend</th><th class="num">Release clause</th></tr></thead><tbody>${
+      vp.map((p, i) => { const c = p.ch > 0 ? "var(--green)" : p.ch < 0 ? "var(--red)" : "var(--muted)";
+        return `<tr><td class="num dim">${String(i + 1).padStart(2, "0")}</td>
+        <td><a class="who" href="player.html#${esc(p.id)}" style="color:inherit">${avatar(p)}<b>${esc(p.name)}</b></a></td>
+        <td>${p.team && T[p.team] ? `<span class="who" style="${teamVars(T[p.team])}">${crest(T[p.team])}<span class="bx-club">${esc(p.team)}</span></span>` : `<span class="dim">${esc(p.team || "–")}</span>`}</td>
+        <td class="num bx-val">${money(p.value)}</td><td class="num">${chg(p)}</td><td class="bx-tr">${spark(p, c)}</td>
+        <td class="num dim">${money(p.value * r.release)}</td></tr>`; }).join("")}</tbody></table></div>`
+      : `<div class="empty">No player has been valued yet</div>`;
+    const feed = vp.flatMap(p => p.h.map((x, k) => ({ p, v: x[0], at: x[1], why: x[2], vc: x[3], before: k ? p.h[k - 1][0] : null })))
+      .sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 30);
+    $("#feed").innerHTML = feed.length ? feed.map(f => { const d = f.before == null ? null : f.v - f.before;
+      return `<div class="move" style="--c:${d == null ? "var(--accent)" : d >= 0 ? "var(--green)" : "var(--red)"}">
+      <span class="amt">${money(f.v)}</span><span class="kind">${d == null ? "First" : d > 0 ? "+" + money(d) : d < 0 ? "−" + money(-d) : "Same"}</span>
+      <span class="mnote"><b>${esc(f.p.name)}</b>${f.before != null ? ` <span class="dim">was ${money(f.before)}</span>` : ""}${f.why ? " · " + esc(f.why) : ""}${f.vc ? "" : ` <span class="dim">· 4 bidders</span>`}</span>
+      <span class="when">${nyDate(f.at, true)}</span></div>`; }).join("")
+      : `<div class="empty">No bids yet</div>`;
+    const clubs = D.teams.map(t => { const ps = vp.filter(p => p.team === t.name);
+      return { t, v: ps.reduce((s, p) => s + p.value, 0), n: ps.length }; }).filter(x => x.n).sort((a, b) => b.v - a.v);
+    const top = Math.max(1, ...clubs.map(x => x.v));
+    $("#clubs").innerHTML = clubs.length ? clubs.map((x, i) => `<div class="bar-row" style="${teamVars(x.t)}">
+      <span class="rank">${i + 1}</span><a class="who" href="teams.html#${slug(x.t.name)}" style="color:inherit">${crest(x.t)}<b>${esc(x.t.name)}</b></a>
+      <div class="track"><i style="width:${Math.max(3, x.v / top * 100)}%"></i></div>
+      <span class="amt">${money(x.v)}<span class="sm">${x.n} valued</span></span></div>`).join("")
+      : `<div class="empty">No club has a valued player yet</div>`;
   },
 
   market(D) {

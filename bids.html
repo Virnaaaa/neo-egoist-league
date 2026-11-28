@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Bids · Neo Egoist League</title>
+<meta name="description" content="The Neo Egoist Exchange: every player's value as agreed by the Bidders, with changes, trends and every bid.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ani's Neo Egoist League">
+<meta property="og:title" content="Bids · Neo Egoist League">
+<meta property="og:description" content="The Neo Egoist Exchange: every player's value as agreed by the Bidders, with changes, trends and every bid.">
+<meta property="og:url" content="https://virnaaaa.github.io/neo-egoist-league/bids.html">
+<meta property="og:image" content="https://virnaaaa.github.io/neo-egoist-league/og/market.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#4f8cff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css?v=bx1127">
+<meta name="league-data" content="https://raw.githubusercontent.com/Virnaaaa/neo-egoist-league/data/data.json">
+</head>
+<body data-page="bids">
+<main class="page">
+<div class="hero">
+  <div class="eyebrow">Neo Egoist Exchange</div>
+  <h1>Player <span>bids</span></h1>
+  <p class="lede">What every player is worth. The Bidders agree each value together in a VC, then an admin sets it with <code>/makebid</code>. Values only change Friday to Sunday, outside the transfer window. In Discord, <code>/market leaderboard</code> posts this board as an image.</p>
+</div>
+<section><div class="bx-stats" id="bx-stats"></div></section>
+<section><h2>The board</h2><p class="sub">Most valuable first. Change is since the player's previous value; the trend line shows every value they've had.</p><div id="board"><p class="loading">Loading the board…</p></div></section>
+<section><h2>Squad value by club</h2><p class="sub">Every valued player on the club, added up.</p><div class="bars" id="clubs"></div></section>
+<section><h2>Latest bids</h2><p class="sub">Every value set, newest first, with when it was agreed (New York time) and why.</p><div class="moves" id="feed"></div></section>
+</main>
+<script src="site.js?v=bx1127"></script>
+</body>
+</html>
